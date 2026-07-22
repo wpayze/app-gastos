@@ -54,7 +54,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { activeBudget } = useActiveBudget();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const mobilePrimary = NAV.slice(0, 3);
+  // 2 ítems a la izquierda del botón +, 1 a la derecha: lo mantiene centrado
+  const mobileLeft = NAV.slice(0, 2);
+  const mobileRight = NAV.slice(2, 3);
   const mobileMore = NAV.slice(3);
 
   return (
@@ -132,7 +134,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         <div className="grid grid-cols-5 items-center px-2">
-          {mobilePrimary.map((item) => {
+          {mobileLeft.map((item) => {
             const active = isActive(pathname, item.href);
             return (
               <Link
@@ -152,6 +154,23 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex justify-center">
             <NewMovementButton variant="fab" />
           </div>
+          {mobileRight.map((item) => {
+            const active = isActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cx(
+                  "flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium",
+                  active ? "text-pine" : "text-ink-faint",
+                )}
+              >
+                <Icon name={item.icon} size={21} />
+                {item.label}
+              </Link>
+            );
+          })}
           <button
             onClick={() => setMoreOpen(true)}
             aria-expanded={moreOpen}

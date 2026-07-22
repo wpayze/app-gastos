@@ -4,13 +4,23 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "./icon";
 import { cx } from "./primitives";
 import { useToast } from "@/lib/store";
 
 // ── Sheet: hoja inferior en móvil, modal centrado en escritorio ──
+//
+// Se monta con un portal a document.body a propósito: si se renderizara
+// en el lugar donde se invoca, cualquier ancestro con backdrop-blur,
+// transform o filter (p. ej. la cabecera móvil) pasa a ser el
+// "containing block" de sus elementos position:fixed, y el modal queda
+// encerrado dentro de ese ancestro (normalmente mucho más pequeño que la
+// pantalla) en lugar de cubrirla. El portal hace que este mismo
+// componente se comporte igual sin importar desde dónde se abra.
 
 export function Sheet({
   open,
@@ -25,6 +35,13 @@ export function Sheet({
   children: ReactNode;
   wide?: boolean;
 }) {
+  // Un portal solo puede montarse tras la hidratación en el cliente
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -36,9 +53,9 @@ export function Sheet({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4"
       role="dialog"
@@ -68,7 +85,8 @@ export function Sheet({
         </div>
         <div className="px-5 py-4 sm:pb-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
