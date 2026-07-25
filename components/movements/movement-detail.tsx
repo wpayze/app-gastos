@@ -1,28 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getBudget, getCategory, getMovement } from "@/lib/data";
-import { getUser } from "@/lib/mock/users";
-import { RECURRENTS } from "@/lib/mock/recurrents";
+import { deleteMovementAction } from "@/app/movimientos/actions";
 import { formatDateLong, formatMoney } from "@/lib/format";
 import { PAYMENT_LABEL, FREQUENCY_LABEL } from "@/lib/labels";
 import { useToast } from "@/lib/store";
-import { useMockLoading } from "@/lib/hooks";
+import type { Budget, Category, Movement, Recurrent, User } from "@/lib/types";
 import {
   Amount,
   Avatar,
   Badge,
   Card,
-  Skeleton,
   cx,
 } from "@/components/ui/primitives";
 import { ConfirmDialog } from "@/components/ui/overlays";
 import { ErrorState } from "@/components/ui/states";
 import { Icon } from "@/components/ui/icon";
 
-function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
+function DetailRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between gap-4 py-2.5">
       <dt className="text-sm text-ink-soft">{label}</dt>
@@ -31,27 +34,23 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-export function MovementDetail({ id }: { id: string }) {
+export function MovementDetail({
+  movement,
+  category,
+  budget,
+  user,
+  recurrent,
+}: {
+  movement: Movement | null;
+  category?: Category | null;
+  budget?: Budget | null;
+  user?: User | null;
+  recurrent?: Recurrent | null;
+}) {
   const router = useRouter();
   const { toast } = useToast();
-  const loading = useMockLoading(id, 400);
   const [confirmDelete, setConfirmDelete] = useState(false);
-
-  const movement = getMovement(id);
-
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-xl space-y-4">
-        <Skeleton className="h-5 w-40" />
-        <Card className="space-y-4 p-6">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
-          <Skeleton className="h-4 w-1/2" />
-        </Card>
-      </div>
-    );
-  }
+  const [pending, startTransition] = useTransition();
 
   if (!movement) {
     return (
@@ -70,12 +69,17 @@ export function MovementDetail({ id }: { id: string }) {
     );
   }
 
-  const cat = getCategory(movement.categoriaId);
-  const user = getUser(movement.userId);
-  const budget = getBudget(movement.budgetId);
-  const recurrent = movement.recurrentId
-    ? RECURRENTS.find((r) => r.id === movement.recurrentId)
-    : undefined;
+  const handleDelete = () => {
+    startTransition(async () => {
+      try {
+        await deleteMovementAction(movement.id);
+        toast(`Movimiento «${movement.concepto}» eliminado`, "danger");
+        router.push("/movimientos");
+      } catch {
+        toast("No se pudo eliminar. Intenta de nuevo.", "danger");
+      }
+    });
+  };
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
@@ -120,22 +124,28 @@ export function MovementDetail({ id }: { id: string }) {
         </div>
 
         <dl className="divide-y divide-line-soft px-6 py-2">
-          <DetailRow label="Categoría">
-            <span className="inline-flex items-center gap-1.5">
-              {cat.emoji} {cat.nombre}
-            </span>
-          </DetailRow>
-          <DetailRow label="Presupuesto">
-            <span className="inline-flex items-center gap-1.5">
-              {budget.emoji} {budget.nombre}
-            </span>
-          </DetailRow>
-          <DetailRow label="Creado por">
-            <span className="inline-flex items-center gap-2">
-              <Avatar iniciales={user.iniciales} color={user.color} size={22} />
-              {user.nombre}
-            </span>
-          </DetailRow>
+          {category && (
+            <DetailRow label="Categoría">
+              <span className="inline-flex items-center gap-1.5">
+                {category.emoji} {category.nombre}
+              </span>
+            </DetailRow>
+          )}
+          {budget && (
+            <DetailRow label="Presupuesto">
+              <span className="inline-flex items-center gap-1.5">
+                {budget.emoji} {budget.nombre}
+              </span>
+            </DetailRow>
+          )}
+          {user && (
+            <DetailRow label="Creado por">
+              <span className="inline-flex items-center gap-2">
+                <Avatar iniciales={user.iniciales} color={user.color} size={22} />
+                {user.nombre}
+              </span>
+            </DetailRow>
+          )}
           {movement.metodoPago && (
             <DetailRow label="Método de pago">
               {PAYMENT_LABEL[movement.metodoPago]}
@@ -143,10 +153,7 @@ export function MovementDetail({ id }: { id: string }) {
           )}
           {recurrent && (
             <DetailRow label="Generado por">
-              <Link
-                href="/recurrentes"
-                className="text-pine hover:underline"
-              >
+              <Link href="/recurrentes" className="text-pine hover:underline">
                 {recurrent.nombre}
               </Link>
             </DetailRow>
@@ -164,18 +171,14 @@ export function MovementDetail({ id }: { id: string }) {
 
       <div className="grid grid-cols-3 gap-2">
         <button
-          onClick={() =>
-            router.push(`/movimientos/nuevo?editar=${movement.id}`)
-          }
+          onClick={() => router.push(`/movimientos/nuevo?editar=${movement.id}`)}
           className="btn-secondary"
         >
           <Icon name="pencil" size={15} />
           Editar
         </button>
         <button
-          onClick={() =>
-            router.push(`/movimientos/nuevo?duplicar=${movement.id}`)
-          }
+          onClick={() => router.push(`/movimientos/nuevo?duplicar=${movement.id}`)}
           className="btn-secondary"
         >
           <Icon name="copy" size={15} />
@@ -183,7 +186,8 @@ export function MovementDetail({ id }: { id: string }) {
         </button>
         <button
           onClick={() => setConfirmDelete(true)}
-          className="btn-secondary !text-expense"
+          disabled={pending}
+          className="btn-secondary !text-expense disabled:opacity-60"
         >
           <Icon name="trash" size={15} />
           Eliminar
@@ -193,16 +197,14 @@ export function MovementDetail({ id }: { id: string }) {
       <ConfirmDialog
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        onConfirm={() => {
-          toast(`Movimiento «${movement.concepto}» eliminado`, "danger");
-          router.push("/movimientos");
-        }}
+        onConfirm={handleDelete}
         title="Eliminar movimiento"
         description={
           <>
             Se eliminará <strong>{movement.concepto}</strong> (
-            {formatMoney(movement.cantidad)}) del presupuesto{" "}
-            {budget.nombre}. Esta acción no se puede deshacer.
+            {formatMoney(movement.cantidad)})
+            {budget ? ` del presupuesto ${budget.nombre}` : ""}. Esta acción
+            no se puede deshacer.
           </>
         }
       />

@@ -4,6 +4,8 @@
 // del servidor, y los meses disponibles se calculan desde la creación del
 // presupuesto, no de una lista fija.
 
+import type { Frequency } from "./types";
+
 export interface MonthOption {
   /** "2026-07" */
   key: string;
@@ -68,6 +70,27 @@ export function nextMonthKey(key: string): string {
   const d = monthDate(key);
   d.setUTCMonth(d.getUTCMonth() + 1);
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`;
+}
+
+/** Fecha ISO (yyyy-mm-dd) + una frecuencia → la siguiente ocurrencia. */
+export function addInterval(iso: string, frequency: Frequency): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  switch (frequency) {
+    case "semanal":
+      date.setUTCDate(date.getUTCDate() + 7);
+      break;
+    case "quincenal":
+      date.setUTCDate(date.getUTCDate() + 14);
+      break;
+    case "mensual":
+      date.setUTCMonth(date.getUTCMonth() + 1);
+      break;
+    case "anual":
+      date.setUTCFullYear(date.getUTCFullYear() + 1);
+      break;
+  }
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
 
 /** Meses desde `fromKey` hasta `toKey`, ambos inclusive, en orden ascendente. */

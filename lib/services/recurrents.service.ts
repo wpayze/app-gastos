@@ -10,6 +10,17 @@ import type {
   RecurrentStatus,
 } from "@/lib/types";
 
+export async function getRecurrentById(id: string): Promise<Recurrent | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recurrents")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapRecurrent(data) : null;
+}
+
 export async function recurrentsByBudget(budgetId: string): Promise<Recurrent[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

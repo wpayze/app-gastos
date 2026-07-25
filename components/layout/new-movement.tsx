@@ -21,13 +21,6 @@ const OPTIONS = [
     icon: "arrowUpRight" as const,
     cls: "bg-pine-tint text-pine",
   },
-  {
-    tipo: "transferencia",
-    label: "Nueva transferencia",
-    description: "Mueve dinero entre presupuestos",
-    icon: "swap" as const,
-    cls: "bg-amber-tint text-amber",
-  },
 ];
 
 /** Acción global para crear un movimiento (botón + hoja de opciones) */
