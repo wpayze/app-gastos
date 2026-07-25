@@ -1,6 +1,6 @@
 "use client";
 
-import type { MonthOption } from "@/lib/mock/calendar";
+import type { MonthOption } from "@/lib/calendar";
 import { Icon } from "./icon";
 import { cx } from "./primitives";
 
