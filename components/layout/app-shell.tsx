@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useActiveBudget, useCurrentUser } from "@/lib/store";
 import { useOffline } from "@/lib/hooks";
+import { signOut } from "@/lib/auth/actions";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Avatar, cx } from "@/components/ui/primitives";
 import { Sheet, ToastViewport } from "@/components/ui/overlays";
@@ -58,6 +59,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mobileLeft = NAV.slice(0, 2);
   const mobileRight = NAV.slice(2, 3);
   const mobileMore = NAV.slice(3);
+
+  // /login no lleva navegación: todavía no hay sesión ni presupuesto activo
+  if (pathname === "/login") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-paper px-4">
+        {children}
+        <ToastViewport />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -113,10 +124,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
           <div className="flex items-center gap-3 border-t border-line-soft pt-4">
             <Avatar iniciales={user.iniciales} color={user.color} size={36} />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{user.nombre}</p>
               <p className="truncate text-xs text-ink-faint">{user.email}</p>
             </div>
+            <form action={signOut}>
+              <button
+                type="submit"
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+                className="rounded-lg p-1.5 text-ink-soft hover:bg-line-soft hover:text-expense"
+              >
+                <Icon name="logout" size={17} />
+              </button>
+            </form>
           </div>
         </aside>
 
@@ -210,6 +231,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         <p className="mt-4 border-t border-line-soft pt-3 text-center text-xs text-ink-faint">
           Trabajando en {activeBudget.emoji} {activeBudget.nombre}
         </p>
+        <form action={signOut} className="mt-3">
+          <button
+            type="submit"
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-3 text-sm font-medium text-expense hover:bg-expense-tint"
+          >
+            <Icon name="logout" size={17} />
+            Cerrar sesión
+          </button>
+        </form>
       </Sheet>
 
       <ToastViewport />

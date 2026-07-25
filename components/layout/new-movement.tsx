@@ -50,7 +50,7 @@ export function NewMovementButton({
         <button
           onClick={() => setOpen(true)}
           aria-label="Nuevo movimiento"
-          className="flex h-13 w-13 -translate-y-4 items-center justify-center rounded-full bg-pine text-white shadow-lg shadow-pine/30 transition-transform active:scale-95"
+          className="flex h-[52px] w-[52px] -translate-y-4 items-center justify-center rounded-full bg-pine text-white shadow-lg shadow-pine/30 transition-transform active:scale-95"
         >
           <Icon name="plus" size={24} />
         </button>

@@ -1,20 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { Database } from "./database.types";
 
 /**
- * Refresca la sesión de Supabase en cada request y mantiene sincronizadas
- * las cookies entre navegador y servidor.
- *
- * De momento NO redirige a /login cuando no hay usuario: esa pantalla
- * todavía no existe (llega con el auth mínimo). Cuando se añada, aquí es
- * donde se protegen las rutas privadas.
+ * Refresca la sesión de Supabase en cada request, mantiene sincronizadas
+ * las cookies entre navegador y servidor, y redirige a /login cuando no
+ * hay usuario autenticado — esta es una app personal sin registro
+ * público, así que no hace falta un modo "invitado".
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   // Con Fluid compute no guardar este cliente en una variable global:
   // hay que crear uno nuevo en cada request.
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -40,7 +39,14 @@ export async function updateSession(request: NextRequest) {
   //
   // IMPORTANTE: quitar esta llamada puede provocar cierres de sesión
   // aleatorios si se usa server-side rendering con este cliente.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims;
+
+  if (!user && !request.nextUrl.pathname.startsWith("/login")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
 
   // IMPORTANTE: hay que devolver supabaseResponse tal cual. Si se crea una
   // respuesta nueva con NextResponse.next(), hay que copiar las cookies de
