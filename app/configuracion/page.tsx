@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useCurrentUser, useToast } from "@/lib/store";
 import { useOffline } from "@/lib/hooks";
+import { updateProfileAction } from "@/app/configuracion/actions";
 import { Avatar, Card, SectionTitle, cx } from "@/components/ui/primitives";
-import { Field, Input, Select, Toggle } from "@/components/ui/forms";
-import { ConfirmDialog } from "@/components/ui/overlays";
+import { Field, Input, Select } from "@/components/ui/forms";
 import { Icon } from "@/components/ui/icon";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -106,61 +107,33 @@ function PwaSection() {
   );
 }
 
-function ExportSection() {
-  const { toast } = useToast();
-  const [state, setState] = useState<"idle" | "working" | "done">("idle");
-
-  const start = () => {
-    setState("working");
-    setTimeout(() => {
-      setState("done");
-      toast("Exportación lista: movimientos-2026.csv (simulado)");
-    }, 1400);
-  };
-
-  return (
-    <Card className="flex items-center justify-between gap-4 px-5 py-4">
-      <div>
-        <p className="text-sm font-medium">Exportar movimientos</p>
-        <p className="text-xs text-ink-faint">
-          Descarga un CSV con todos los movimientos de tus presupuestos.
-        </p>
-      </div>
-      <button
-        onClick={start}
-        disabled={state === "working"}
-        className="btn-secondary shrink-0 disabled:opacity-60"
-      >
-        {state === "working" ? (
-          <>
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-ink-faint border-t-transparent" />
-            Preparando…
-          </>
-        ) : (
-          <>
-            <Icon name="download" size={15} />
-            {state === "done" ? "Exportar de nuevo" : "Exportar CSV"}
-          </>
-        )}
-      </button>
-    </Card>
-  );
-}
-
 export default function SettingsPage() {
+  const router = useRouter();
   const user = useCurrentUser();
   const { toast } = useToast();
+  const [pending, startTransition] = useTransition();
 
   const [nombre, setNombre] = useState(user.nombre);
   const [moneda, setMoneda] = useState("EUR");
   const [idioma, setIdioma] = useState("es");
   const [formatoFecha, setFormatoFecha] = useState("dd/mm/aaaa");
   const [inicioPeriodo, setInicioPeriodo] = useState("1");
-  const [notifLimites, setNotifLimites] = useState(true);
-  const [notifRecurrentes, setNotifRecurrentes] = useState(true);
-  const [notifResumen, setNotifResumen] = useState(false);
-  const [notifInvitaciones, setNotifInvitaciones] = useState(true);
-  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const handleSaveProfile = () => {
+    if (!nombre.trim()) {
+      toast("El nombre no puede quedar vacío.", "danger");
+      return;
+    }
+    startTransition(async () => {
+      try {
+        await updateProfileAction(nombre.trim());
+        toast("Perfil actualizado");
+        router.refresh();
+      } catch {
+        toast("No se pudo guardar. Intenta de nuevo.", "danger");
+      }
+    });
+  };
 
   return (
     <div className="mx-auto max-w-2xl space-y-7">
@@ -189,10 +162,11 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-end">
             <button
-              onClick={() => toast("Perfil actualizado")}
-              className="btn-primary"
+              onClick={handleSaveProfile}
+              disabled={pending}
+              className="btn-primary disabled:opacity-60"
             >
-              Guardar cambios
+              {pending ? "Guardando…" : "Guardar cambios"}
             </button>
           </div>
         </Card>
@@ -221,9 +195,9 @@ export default function SettingsPage() {
               value={formatoFecha}
               onChange={(e) => setFormatoFecha(e.target.value)}
             >
-              <option value="dd/mm/aaaa">19/07/2026</option>
-              <option value="mm/dd/aaaa">07/19/2026</option>
-              <option value="aaaa-mm-dd">2026-07-19</option>
+              <option value="dd/mm/aaaa">26/07/2026</option>
+              <option value="mm/dd/aaaa">07/26/2026</option>
+              <option value="aaaa-mm-dd">2026-07-26</option>
             </Select>
           </Field>
           <Field
@@ -243,90 +217,11 @@ export default function SettingsPage() {
       </section>
 
       <section>
-        <SectionTitle>Notificaciones</SectionTitle>
-        <Card className="divide-y divide-line-soft px-5">
-          <div className="py-3">
-            <Toggle
-              checked={notifLimites}
-              onChange={setNotifLimites}
-              label="Alertas de límites"
-              description="Cuando una categoría supere el 85 % de su límite"
-            />
-          </div>
-          <div className="py-3">
-            <Toggle
-              checked={notifRecurrentes}
-              onChange={setNotifRecurrentes}
-              label="Recordatorios de recurrentes"
-              description="Un día antes de cada cargo o ingreso programado"
-            />
-          </div>
-          <div className="py-3">
-            <Toggle
-              checked={notifResumen}
-              onChange={setNotifResumen}
-              label="Resumen mensual"
-              description="Balance del mes al cerrarse el periodo"
-            />
-          </div>
-          <div className="py-3">
-            <Toggle
-              checked={notifInvitaciones}
-              onChange={setNotifInvitaciones}
-              label="Invitaciones y miembros"
-              description="Cambios de acceso en tus presupuestos"
-            />
-          </div>
-        </Card>
-      </section>
-
-      <section>
         <SectionTitle>Aplicación</SectionTitle>
-        <div className="space-y-3">
-          <PwaSection />
-          <ExportSection />
-        </div>
+        <PwaSection />
       </section>
 
-      <section>
-        <SectionTitle>Zona de peligro</SectionTitle>
-        <Card className="flex items-center justify-between gap-4 border-expense/30 px-5 py-4">
-          <div>
-            <p className="text-sm font-medium text-expense">Eliminar cuenta</p>
-            <p className="text-xs text-ink-faint">
-              Borra tu usuario y tu acceso a todos los presupuestos.
-            </p>
-          </div>
-          <button
-            onClick={() => setDeleteOpen(true)}
-            className="btn-danger shrink-0"
-          >
-            <Icon name="trash" size={15} />
-            Eliminar
-          </button>
-        </Card>
-      </section>
-
-      <ConfirmDialog
-        open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
-        onConfirm={() =>
-          toast("Cuenta eliminada (simulado). Hasta pronto 👋", "danger")
-        }
-        title="Eliminar cuenta"
-        confirmLabel="Eliminar mi cuenta"
-        description={
-          <>
-            Se eliminarán tu perfil y tu acceso a todos los presupuestos. Los
-            presupuestos compartidos seguirán existiendo para el resto de
-            miembros. Esta acción no se puede deshacer.
-          </>
-        }
-      />
-
-      <p className="pb-4 text-center text-xs text-ink-faint">
-        Centavo · versión de demostración con datos simulados
-      </p>
+      <p className="pb-4 text-center text-xs text-ink-faint">Centavo</p>
     </div>
   );
 }

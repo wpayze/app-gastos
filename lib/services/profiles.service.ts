@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { mapProfile } from "@/lib/models/mappers";
+import type { Database } from "@/lib/supabase/database.types";
 import type { User } from "@/lib/types";
 
 /**
@@ -23,6 +24,24 @@ export async function getProfileById(id: string): Promise<User | null> {
     .maybeSingle();
   if (error) throw error;
   return data ? mapProfile(data) : null;
+}
+
+export async function updateProfile(
+  id: string,
+  input: { nombre?: string },
+): Promise<User> {
+  const supabase = await createClient();
+  const patch: Database["public"]["Tables"]["profiles"]["Update"] = {};
+  if (input.nombre !== undefined) patch.nombre = input.nombre;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(patch)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return mapProfile(data);
 }
 
 /** Para "añadir miembro por correo": solo encuentra cuentas que ya existen. */
