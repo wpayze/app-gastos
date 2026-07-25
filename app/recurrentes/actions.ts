@@ -7,10 +7,13 @@ import {
   pauseRecurrent,
   resumeRecurrent,
   deleteRecurrent,
+  getRecurrentById,
   type RecurrentInput,
 } from "@/lib/services/recurrents.service";
+import { createMovement } from "@/lib/services/movements.service";
 import { logActivity } from "@/lib/services/activity.service";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { addInterval } from "@/lib/calendar";
 
 async function requireCurrentUser() {
   const user = await getCurrentUser();
@@ -79,4 +82,43 @@ export async function resumeRecurrentAction(
 export async function deleteRecurrentAction(id: string) {
   await deleteRecurrent(id);
   revalidatePath("/recurrentes");
+}
+
+/**
+ * Crea el movimiento de este recurrente para la fecha elegida y avanza
+ * proximaFecha a partir de esa misma fecha (no de la que tenía guardada:
+ * el cobro real pudo caer en un día distinto al esperado).
+ */
+export async function addRecurrentMovementAction(
+  recurrentId: string,
+  fecha: string,
+) {
+  const recurrent = await getRecurrentById(recurrentId);
+  if (!recurrent) throw new Error("Recurrente no encontrado.");
+
+  const movement = await createMovement({
+    budgetId: recurrent.budgetId,
+    tipo: recurrent.tipo,
+    concepto: recurrent.nombre,
+    cantidad: recurrent.cantidad,
+    categoriaId: recurrent.categoriaId,
+    fecha,
+    userId: recurrent.userId,
+    metodoPago: recurrent.metodoPago,
+    recurrentId: recurrent.id,
+  });
+
+  const nextProximaFecha = addInterval(fecha, recurrent.frecuencia);
+  const seTermino =
+    recurrent.fechaFin !== undefined && nextProximaFecha > recurrent.fechaFin;
+
+  await updateRecurrent(recurrent.id, {
+    proximaFecha: nextProximaFecha,
+    ...(seTermino ? { estado: "finalizado" as const } : {}),
+  });
+
+  revalidatePath("/recurrentes");
+  revalidatePath("/movimientos");
+  revalidatePath("/");
+  return movement;
 }

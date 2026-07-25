@@ -18,6 +18,7 @@ import type {
 import { Card, cx } from "@/components/ui/primitives";
 import { Field, Input, Select, Textarea, Toggle } from "@/components/ui/forms";
 import { Icon } from "@/components/ui/icon";
+import { QuickCreateCategory } from "@/components/categories/quick-create-category";
 
 interface Errors {
   cantidad?: string;
@@ -48,6 +49,7 @@ export function NewMovementForm({
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();
 
+  const [categoryList, setCategoryList] = useState<Category[]>(categories);
   const [tipo, setTipo] = useState<MovementType>(initialTipo);
   const [cantidad, setCantidad] = useState(base ? String(base.cantidad) : "");
   const [concepto, setConcepto] = useState(base?.concepto ?? "");
@@ -63,8 +65,8 @@ export function NewMovementForm({
   const [done, setDone] = useState(false);
 
   const categoriasDisponibles = useMemo(
-    () => categories.filter((c) => c.tipo === tipo),
-    [categories, tipo],
+    () => categoryList.filter((c) => c.tipo === tipo),
+    [categoryList, tipo],
   );
 
   const miembrosActivos = activeBudget.miembros.filter(
@@ -260,6 +262,13 @@ export function NewMovementForm({
                   </option>
                 ))}
               </Select>
+              <QuickCreateCategory
+                tipo={tipo}
+                onCreated={(cat) => {
+                  setCategoryList((l) => [...l, cat]);
+                  setCategoria(cat.id);
+                }}
+              />
             </Field>
             <Field label="Fecha">
               <Input

@@ -3,9 +3,18 @@
 import { useMemo, useState, useTransition } from "react";
 import { useActiveBudget, useToast } from "@/lib/store";
 import { formatDate, relativeDay } from "@/lib/format";
+import { addInterval, isoToMonthKey } from "@/lib/calendar";
+import { isRecurrentPendingForMonth } from "@/lib/recurrents";
 import { FREQUENCY_LABEL, RECURRENT_STATUS_LABEL } from "@/lib/labels";
-import type { Category, Frequency, MovementType, Recurrent } from "@/lib/types";
+import type {
+  Category,
+  Frequency,
+  Movement,
+  MovementType,
+  Recurrent,
+} from "@/lib/types";
 import {
+  addRecurrentMovementAction,
   createRecurrentAction,
   deleteRecurrentAction,
   pauseRecurrentAction,
@@ -23,6 +32,7 @@ import { FilterChips, Field, Input, Select } from "@/components/ui/forms";
 import { ConfirmDialog, Menu, Sheet } from "@/components/ui/overlays";
 import { EmptyState } from "@/components/ui/states";
 import { Icon } from "@/components/ui/icon";
+import { QuickCreateCategory } from "@/components/categories/quick-create-category";
 
 type Filter = "todos" | "ingresos" | "gastos" | "activos" | "pausados";
 
@@ -55,11 +65,13 @@ export interface RecurrentFormValues {
 
 function RecurrentForm({
   categories,
+  onCategoryCreated,
   initial,
   pending,
   onSubmit,
 }: {
   categories: Category[];
+  onCategoryCreated: (category: Category) => void;
   initial?: Recurrent;
   pending: boolean;
   onSubmit: (values: RecurrentFormValues) => void;
@@ -153,6 +165,13 @@ function RecurrentForm({
                 </option>
               ))}
           </Select>
+          <QuickCreateCategory
+            tipo={tipo}
+            onCreated={(cat) => {
+              onCategoryCreated(cat);
+              setCategoria(cat.id);
+            }}
+          />
         </Field>
         <Field label="Frecuencia">
           <Select
@@ -195,22 +214,30 @@ export function RecurrentsView({
   budgetId,
   initialRecurrents,
   categories,
+  movementsThisMonth,
+  month,
   today,
 }: {
   budgetId: string;
   initialRecurrents: Recurrent[];
   categories: Category[];
+  movementsThisMonth: Movement[];
+  month: string;
   today: string;
 }) {
   const { activeBudget } = useActiveBudget();
   const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>("todos");
   const [items, setItems] = useState<Recurrent[]>(initialRecurrents);
+  const [categoryList, setCategoryList] = useState<Category[]>(categories);
+  const [monthMovements, setMonthMovements] = useState<Movement[]>(movementsThisMonth);
   const [pending, startTransition] = useTransition();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Recurrent | undefined>();
   const [deleting, setDeleting] = useState<Recurrent | undefined>();
+  const [addToMonthFor, setAddToMonthFor] = useState<Recurrent | undefined>();
+  const [addDate, setAddDate] = useState("");
 
   const filtered = useMemo(
     () =>
@@ -285,6 +312,44 @@ export function RecurrentsView({
     });
   };
 
+  const openAddToMonth = (r: Recurrent) => {
+    // Si proximaFecha ya cae en este mes se usa como sugerencia; si no
+    // (viene de otro mes u otra época), se propone hoy.
+    setAddDate(isoToMonthKey(r.proximaFecha) === month ? r.proximaFecha : today);
+    setAddToMonthFor(r);
+  };
+
+  const handleAddToMonth = () => {
+    if (!addToMonthFor || !addDate) return;
+    const r = addToMonthFor;
+    const fecha = addDate;
+    setAddToMonthFor(undefined);
+    startTransition(async () => {
+      try {
+        const movement = await addRecurrentMovementAction(r.id, fecha);
+        setMonthMovements((list) => [...list, movement]);
+        const nextProximaFecha = addInterval(fecha, r.frecuencia);
+        setItems((list) =>
+          list.map((x) =>
+            x.id === r.id
+              ? {
+                  ...x,
+                  proximaFecha: nextProximaFecha,
+                  estado:
+                    x.fechaFin && nextProximaFecha > x.fechaFin
+                      ? "finalizado"
+                      : x.estado,
+                }
+              : x,
+          ),
+        );
+        toast(`Movimiento de «${r.nombre}» añadido a este mes`);
+      } catch {
+        toast("No se pudo añadir. Intenta de nuevo.", "danger");
+      }
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -304,9 +369,9 @@ export function RecurrentsView({
       <Card className="flex items-start gap-3 border-pine/25 bg-pine-tint px-4 py-3">
         <Icon name="repeat" size={17} className="mt-0.5 shrink-0 text-pine" />
         <p className="text-sm text-pine-deep">
-          Cada elemento se añadirá automáticamente como movimiento en su
-          periodo correspondiente cuando la generación automática esté
-          conectada.
+          Los recurrentes no se añaden solos: cuando llegue el cobro o el
+          ingreso, usa <strong>Agregar a este mes</strong> para crear el
+          movimiento en la fecha exacta en que ocurrió.
         </p>
       </Card>
 
@@ -355,7 +420,12 @@ export function RecurrentsView({
         <Card>
           <ul className="divide-y divide-line-soft">
             {filtered.map((r) => {
-              const cat = findCategory(categories, r.categoriaId);
+              const cat = findCategory(categoryList, r.categoriaId);
+              const pendingThisMonth = isRecurrentPendingForMonth(
+                r,
+                month,
+                monthMovements,
+              );
               return (
                 <li key={r.id} className="flex items-center gap-3 px-4 py-3.5">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-line-soft text-lg">
@@ -389,6 +459,24 @@ export function RecurrentsView({
                           ? "En pausa: no genera movimientos"
                           : "Finalizado"}
                     </p>
+                    {r.estado === "activo" && (
+                      <div className="mt-1.5">
+                        {pendingThisMonth ? (
+                          <button
+                            onClick={() => openAddToMonth(r)}
+                            className="inline-flex items-center gap-1 rounded-full bg-amber-tint px-2.5 py-1 text-xs font-semibold text-amber hover:brightness-95"
+                          >
+                            <Icon name="plus" size={12} />
+                            Agregar a este mes
+                          </button>
+                        ) : (
+                          <Badge variant="green">
+                            <Icon name="check" size={11} />
+                            Añadido este mes
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <Amount
                     value={r.cantidad}
@@ -440,11 +528,44 @@ export function RecurrentsView({
       >
         <RecurrentForm
           key={editing?.id ?? "new"}
-          categories={categories}
+          categories={categoryList}
+          onCategoryCreated={(cat) => setCategoryList((l) => [...l, cat])}
           initial={editing}
           pending={pending}
           onSubmit={handleSubmit}
         />
+      </Sheet>
+
+      <Sheet
+        open={Boolean(addToMonthFor)}
+        onClose={() => setAddToMonthFor(undefined)}
+        title={`Agregar «${addToMonthFor?.nombre ?? ""}» a este mes`}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddToMonth();
+          }}
+          className="space-y-4"
+        >
+          <Field
+            label="Fecha del cobro/ingreso"
+            hint="La fecha real en que ocurrió, aunque no coincida con la fecha prevista."
+          >
+            <Input
+              type="date"
+              value={addDate}
+              onChange={(e) => setAddDate(e.target.value)}
+              required
+            />
+          </Field>
+          <div className="flex justify-end">
+            <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
+              <Icon name="check" size={16} />
+              {pending ? "Añadiendo…" : "Añadir movimiento"}
+            </button>
+          </div>
+        </form>
       </Sheet>
 
       <ConfirmDialog

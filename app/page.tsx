@@ -7,12 +7,17 @@ import {
   categoryAlerts,
   hasAnyMovements,
   availableMonths,
+  movementsByMonth,
 } from "@/lib/services/movements.service";
-import { upcomingRecurrents } from "@/lib/services/recurrents.service";
+import {
+  recurrentsByBudget,
+  upcomingRecurrents,
+} from "@/lib/services/recurrents.service";
 import { recentActivity } from "@/lib/services/activity.service";
 import { listCategories } from "@/lib/services/categories.service";
 import { listProfiles } from "@/lib/services/profiles.service";
 import { currentMonthKey, todayISO } from "@/lib/calendar";
+import { isRecurrentPendingForMonth } from "@/lib/recurrents";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 
 export default async function DashboardPage({
@@ -22,7 +27,8 @@ export default async function DashboardPage({
 }) {
   const { activeBudgetId } = await getActiveBudgetContext();
   const sp = await searchParams;
-  const month = sp.mes ?? currentMonthKey();
+  const realCurrentMonth = currentMonthKey();
+  const month = sp.mes ?? realCurrentMonth;
 
   const [
     months,
@@ -36,6 +42,8 @@ export default async function DashboardPage({
     actividad,
     categories,
     profiles,
+    allRecurrents,
+    currentMonthMovements,
   ] = await Promise.all([
     availableMonths(activeBudgetId),
     hasAnyMovements(activeBudgetId),
@@ -48,9 +56,17 @@ export default async function DashboardPage({
     recentActivity(activeBudgetId, 6),
     listCategories(),
     listProfiles(),
+    recurrentsByBudget(activeBudgetId),
+    movementsByMonth(activeBudgetId, realCurrentMonth),
   ]);
 
   const porCategoria = porCategoriaAll.filter((c) => c.gastado > 0).slice(0, 5);
+
+  // Siempre contra el mes real, no el que se esté viendo con el selector:
+  // no tiene sentido pedir que "agregues" algo de un mes que ya pasaste a revisar.
+  const pendingRecurrentsCount = allRecurrents.filter((r) =>
+    isRecurrentPendingForMonth(r, realCurrentMonth, currentMonthMovements),
+  ).length;
 
   return (
     <DashboardView
@@ -68,6 +84,7 @@ export default async function DashboardPage({
       categories={categories}
       profiles={profiles}
       today={todayISO()}
+      pendingRecurrentsCount={pendingRecurrentsCount}
     />
   );
 }

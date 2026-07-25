@@ -126,6 +126,7 @@ export function DashboardView({
   categories,
   profiles,
   today,
+  pendingRecurrentsCount,
 }: {
   months: MonthOption[];
   month: string;
@@ -140,6 +141,7 @@ export function DashboardView({
   categories: Category[];
   profiles: User[];
   today: string;
+  pendingRecurrentsCount: number;
 }) {
   const { activeBudget } = useActiveBudget();
   const router = useRouter();
@@ -267,6 +269,27 @@ export function DashboardView({
               )}
             </div>
           </Card>
+
+          {/* Recurrentes pendientes de agregar este mes */}
+          {pendingRecurrentsCount > 0 && (
+            <Card className="flex items-center gap-3 border-amber/40 bg-amber-tint px-4 py-3">
+              <Icon name="repeat" size={18} className="shrink-0 text-amber" />
+              <p className="flex-1 text-sm text-amber">
+                <strong>
+                  {pendingRecurrentsCount}{" "}
+                  {pendingRecurrentsCount === 1 ? "recurrente" : "recurrentes"}
+                </strong>{" "}
+                {pendingRecurrentsCount === 1 ? "no se ha" : "no se han"}{" "}
+                añadido al presupuesto de este mes.
+              </p>
+              <Link
+                href="/recurrentes"
+                className="shrink-0 text-sm font-semibold text-pine hover:underline"
+              >
+                Revisar
+              </Link>
+            </Card>
+          )}
 
           {/* Alertas de límites */}
           {alertas.length > 0 && (
