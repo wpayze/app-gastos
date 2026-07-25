@@ -2,15 +2,13 @@
 
 import { useState } from "react";
 import { useActiveBudget, useToast } from "@/lib/store";
-import { listBudgets, monthSummary } from "@/lib/data";
-import { CURRENT_MONTH } from "@/lib/mock/calendar";
 import { ROLE_LABEL } from "@/lib/labels";
 import { Sheet } from "@/components/ui/overlays";
 import { Icon } from "@/components/ui/icon";
-import { Amount, Badge, cx } from "@/components/ui/primitives";
+import { Badge, cx } from "@/components/ui/primitives";
 
 export function BudgetSwitcher({ compact = false }: { compact?: boolean }) {
-  const { activeBudget, activeBudgetId, setActiveBudgetId, currentUserId } =
+  const { activeBudget, activeBudgetId, budgets, setActiveBudgetId, currentUserId } =
     useActiveBudget();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -48,8 +46,7 @@ export function BudgetSwitcher({ compact = false }: { compact?: boolean }) {
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Cambiar de presupuesto">
         <ul className="space-y-2">
-          {listBudgets().map((b) => {
-            const s = monthSummary(b.id, CURRENT_MONTH);
+          {budgets.map((b) => {
             const rol = b.miembros.find((m) => m.userId === currentUserId)?.rol;
             const active = b.id === activeBudgetId;
             return (
@@ -78,16 +75,9 @@ export function BudgetSwitcher({ compact = false }: { compact?: boolean }) {
                       )}
                     </span>
                     <span className="block truncate text-xs text-ink-soft">
-                      {s.movimientos === 0
-                        ? "Sin movimientos este mes"
-                        : `Balance de julio: `}
-                      {s.movimientos > 0 && (
-                        <Amount
-                          value={s.balance}
-                          tipo={s.balance >= 0 ? "ingreso" : "gasto"}
-                          className="text-xs font-semibold"
-                        />
-                      )}
+                      {b.miembros.length === 1
+                        ? "Solo tú"
+                        : `${b.miembros.length} miembros`}
                     </span>
                   </span>
                   {active && (

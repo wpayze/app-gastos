@@ -389,6 +389,15 @@ export type Database = {
         Args: { target_budget_id: string };
         Returns: boolean;
       };
+      create_budget_with_owner: {
+        Args: {
+          p_nombre: string;
+          p_descripcion?: string;
+          p_emoji?: string;
+          p_limite_mensual?: number | null;
+        };
+        Returns: Database["public"]["Tables"]["budgets"]["Row"];
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

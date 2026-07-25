@@ -9,7 +9,15 @@ import type { Database } from "./database.types";
  * público, así que no hace falta un modo "invitado".
  */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  // Propaga la ruta actual a los Server Components vía headers() — el
+  // layout raíz la usa para saber si debe saltarse el shell de la app
+  // (p. ej. en /login, donde todavía no hay presupuesto activo que cargar).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+
+  let supabaseResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   // Con Fluid compute no guardar este cliente en una variable global:
   // hay que crear uno nuevo en cada request.
@@ -25,7 +33,9 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );

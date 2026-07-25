@@ -1,5 +1,3 @@
-import { TODAY } from "./mock/calendar";
-
 const money = new Intl.NumberFormat("es-ES", {
   style: "currency",
   currency: "EUR",
@@ -84,15 +82,23 @@ export function formatWeekdayDay(iso: string) {
   return weekdayDay.format(toUTC(iso));
 }
 
-/** Días de diferencia respecto a HOY (mock): negativo = pasado */
-export function daysFromToday(iso: string) {
-  const ms = toUTC(iso).getTime() - toUTC(TODAY).getTime();
+/**
+ * Días de diferencia respecto a `today`: negativo = pasado.
+ * `today` se recibe explícito (nunca `new Date()` aquí dentro) porque esta
+ * función se llama desde Client Components que también se renderizan en
+ * el servidor: si calculara "hoy" por su cuenta, servidor y cliente podrían
+ * ver milisegundos distintos y desajustar la hidratación. Quien llama debe
+ * fijar `today` una vez arriba (en un Server Component) y pasarlo hacia
+ * abajo — igual que hacía el mock con su TODAY fijo.
+ */
+export function daysFromToday(iso: string, today: string) {
+  const ms = toUTC(iso).getTime() - toUTC(today).getTime();
   return Math.round(ms / 86_400_000);
 }
 
 /** "Hoy", "Mañana", "En 5 días", "Hace 3 días" o fecha corta */
-export function relativeDay(iso: string) {
-  const d = daysFromToday(iso);
+export function relativeDay(iso: string, today: string) {
+  const d = daysFromToday(iso, today);
   if (d === 0) return "Hoy";
   if (d === 1) return "Mañana";
   if (d === -1) return "Ayer";

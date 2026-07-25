@@ -60,16 +60,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mobileRight = NAV.slice(2, 3);
   const mobileMore = NAV.slice(3);
 
-  // /login no lleva navegación: todavía no hay sesión ni presupuesto activo
-  if (pathname === "/login") {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-paper px-4">
-        {children}
-        <ToastViewport />
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-dvh flex-col">
       <SWRegister />

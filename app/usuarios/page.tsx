@@ -5,6 +5,7 @@ import { useActiveBudget, useToast } from "@/lib/store";
 import { useMockLoading } from "@/lib/hooks";
 import { movementCountByUser } from "@/lib/data";
 import { getUser } from "@/lib/mock/users";
+import { TODAY } from "@/lib/mock/calendar";
 import { formatDate, relativeDay } from "@/lib/format";
 import { MEMBER_STATUS_LABEL, ROLE_LABEL } from "@/lib/labels";
 import type { BudgetMember, BudgetRole } from "@/lib/types";
@@ -170,7 +171,7 @@ function Users() {
                       </p>
                       <p className="text-xs text-ink-faint">
                         Desde {formatDate(member.fechaIncorporacion)} · Última
-                        actividad: {relativeDay(member.ultimaActividad)} ·{" "}
+                        actividad: {relativeDay(member.ultimaActividad, TODAY)} ·{" "}
                         {counts[member.userId] ?? 0} movimientos
                       </p>
                     </div>

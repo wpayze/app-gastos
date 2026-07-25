@@ -17,7 +17,7 @@ import {
   upcomingRecurrents,
 } from "@/lib/data";
 import { getUser } from "@/lib/mock/users";
-import { CURRENT_MONTH } from "@/lib/mock/calendar";
+import { CURRENT_MONTH, TODAY } from "@/lib/mock/calendar";
 import {
   formatDateShort,
   formatMoney,
@@ -426,7 +426,7 @@ function Dashboard({
                           </span>
                           <span className="block text-xs text-ink-faint">
                             {FREQUENCY_LABEL[r.frecuencia]} ·{" "}
-                            {relativeDay(r.proximaFecha)}
+                            {relativeDay(r.proximaFecha, TODAY)}
                           </span>
                         </span>
                         <Amount
@@ -469,7 +469,7 @@ function Dashboard({
                               <strong>{u.nombre.split(" ")[0]}</strong> {a.texto}
                             </p>
                             <p className="text-xs text-ink-faint">
-                              {relativeDay(a.fecha)}
+                              {relativeDay(a.fecha, TODAY)}
                             </p>
                           </div>
                           {a.tipo !== "movimiento" && (

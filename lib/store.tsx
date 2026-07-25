@@ -1,8 +1,10 @@
 "use client";
 
 // Estado global de la interfaz: presupuesto activo y avisos (toasts).
-// Es deliberadamente simple: cuando exista backend, el presupuesto
-// activo vivirá en la sesión del usuario.
+// El usuario y los presupuestos llegan sembrados desde el servidor
+// (app/layout.tsx); cambiar de presupuesto persiste en una cookie vía
+// lib/session/actions.ts para que los Server Components de cada página
+// sepan cuál usar en el siguiente render.
 
 import {
   createContext,
@@ -10,19 +12,23 @@ import {
   useContext,
   useMemo,
   useState,
+  useTransition,
   type ReactNode,
 } from "react";
-import type { Budget } from "./types";
-import { getBudget } from "./mock/budgets";
-import { CURRENT_USER_ID, getUser } from "./mock/users";
+import { useRouter } from "next/navigation";
+import type { Budget, User } from "./types";
+import { setActiveBudget } from "./session/actions";
 
 // ── Presupuesto activo ──────────────────────────────────────
 
 interface BudgetContextValue {
   activeBudgetId: string;
   activeBudget: Budget;
+  budgets: Budget[];
   setActiveBudgetId: (id: string) => void;
+  switching: boolean;
   currentUserId: string;
+  currentUser: User;
 }
 
 const BudgetContext = createContext<BudgetContextValue | null>(null);
@@ -34,8 +40,7 @@ export function useActiveBudget() {
 }
 
 export function useCurrentUser() {
-  const { currentUserId } = useActiveBudget();
-  return getUser(currentUserId);
+  return useActiveBudget().currentUser;
 }
 
 // ── Toasts ──────────────────────────────────────────────────
@@ -66,8 +71,22 @@ let toastSeq = 0;
 
 // ── Provider raíz ───────────────────────────────────────────
 
-export function AppProviders({ children }: { children: ReactNode }) {
-  const [activeBudgetId, setActiveBudgetId] = useState("b-personal");
+export function AppProviders({
+  user,
+  budgets,
+  activeBudgetId: initialActiveBudgetId,
+  children,
+}: {
+  user: User;
+  budgets: Budget[];
+  activeBudgetId: string;
+  children: ReactNode;
+}) {
+  const router = useRouter();
+  const [activeBudgetId, setActiveBudgetIdState] = useState(
+    initialActiveBudgetId,
+  );
+  const [switching, startTransition] = useTransition();
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const dismiss = useCallback((id: number) => {
@@ -83,14 +102,29 @@ export function AppProviders({ children }: { children: ReactNode }) {
     [dismiss],
   );
 
+  const setActiveBudgetId = useCallback(
+    (id: string) => {
+      setActiveBudgetIdState(id); // feedback instantáneo en la UI
+      startTransition(async () => {
+        await setActiveBudget(id);
+        router.refresh(); // re-renderiza los Server Components con la cookie nueva
+      });
+    },
+    [router],
+  );
+
   const budgetValue = useMemo<BudgetContextValue>(
     () => ({
       activeBudgetId,
-      activeBudget: getBudget(activeBudgetId),
+      activeBudget:
+        budgets.find((b) => b.id === activeBudgetId) ?? budgets[0],
+      budgets,
       setActiveBudgetId,
-      currentUserId: CURRENT_USER_ID,
+      switching,
+      currentUserId: user.id,
+      currentUser: user,
     }),
-    [activeBudgetId],
+    [activeBudgetId, budgets, setActiveBudgetId, switching, user],
   );
 
   const toastValue = useMemo<ToastContextValue>(
