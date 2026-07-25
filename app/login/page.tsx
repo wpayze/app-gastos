@@ -8,5 +8,9 @@ export default async function LoginPage() {
   const user = await getCurrentUser();
   if (user) redirect("/");
 
-  return <LoginForm />;
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-paper px-4">
+      <LoginForm />
+    </div>
+  );
 }
