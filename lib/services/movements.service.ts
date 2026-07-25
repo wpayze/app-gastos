@@ -36,6 +36,18 @@ function monthRange(month: string) {
   return { from: `${month}-01`, to: `${nextMonthKey(month)}-01` };
 }
 
+/** Comprobación barata (sin traer filas) de si el presupuesto tiene algún movimiento. */
+export async function hasAnyMovements(budgetId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("movements")
+    .select("id")
+    .eq("budget_id", budgetId)
+    .limit(1);
+  if (error) throw error;
+  return data.length > 0;
+}
+
 export async function movementsByBudget(budgetId: string): Promise<Movement[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

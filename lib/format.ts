@@ -34,8 +34,15 @@ export function pctChange(current: number, previous: number): number | null {
   return ((current - previous) / previous) * 100;
 }
 
+/**
+ * Acepta tanto fechas simples ("2026-07-25", columnas `date`) como
+ * timestamps completos ("2026-07-25T14:23:00+00:00", columnas
+ * `timestamptz` como budget_members.ultima_actividad) — a una fecha
+ * simple hay que ponerle hora antes de parsearla; a un timestamp que ya
+ * la trae, no.
+ */
 function toUTC(iso: string) {
-  return new Date(`${iso}T00:00:00Z`);
+  return new Date(iso.includes("T") ? iso : `${iso}T00:00:00Z`);
 }
 
 const dayMonth = new Intl.DateTimeFormat("es-ES", {

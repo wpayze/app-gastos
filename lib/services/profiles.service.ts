@@ -24,3 +24,15 @@ export async function getProfileById(id: string): Promise<User | null> {
   if (error) throw error;
   return data ? mapProfile(data) : null;
 }
+
+/** Para "añadir miembro por correo": solo encuentra cuentas que ya existen. */
+export async function getProfileByEmail(email: string): Promise<User | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .ilike("email", email.trim())
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapProfile(data) : null;
+}
