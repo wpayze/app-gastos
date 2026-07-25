@@ -22,22 +22,47 @@ export async function getCategoryById(id: string): Promise<Category | null> {
 }
 
 export interface CreateCategoryInput {
-  id: string;
   nombre: string;
   tipo: MovementType;
   emoji: string;
 }
 
+function slugify(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(new RegExp("[\\u0300-\\u036f]", "g"), "") // quita acentos
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+/** El id (slug) se deriva del nombre, no lo pide el formulario. */
 export async function createCategory(
   input: CreateCategoryInput,
 ): Promise<Category> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const baseId = slugify(input.nombre) || "categoria";
+  const row = { id: baseId, nombre: input.nombre, tipo: input.tipo, emoji: input.emoji };
+
+  let { data, error } = await supabase
     .from("categories")
-    .insert(input)
+    .insert(row)
     .select("*")
     .single();
+
+  // Slug ya usado por otra categoría: reintenta una vez con un sufijo.
+  if (error?.code === "23505") {
+    const retryId = `${baseId}-${Math.random().toString(36).slice(2, 6)}`;
+    ({ data, error } = await supabase
+      .from("categories")
+      .insert({ ...row, id: retryId })
+      .select("*")
+      .single());
+  }
+
   if (error) throw error;
+  if (!data) throw new Error("No se pudo crear la categoría.");
   return mapCategory(data);
 }
 
