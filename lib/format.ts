@@ -89,6 +89,10 @@ export function formatWeekdayDay(iso: string) {
   return weekdayDay.format(toUTC(iso));
 }
 
+function startOfUTCDay(d: Date) {
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
 /**
  * Días de diferencia respecto a `today`: negativo = pasado.
  * `today` se recibe explícito (nunca `new Date()` aquí dentro) porque esta
@@ -97,9 +101,13 @@ export function formatWeekdayDay(iso: string) {
  * ver milisegundos distintos y desajustar la hidratación. Quien llama debe
  * fijar `today` una vez arriba (en un Server Component) y pasarlo hacia
  * abajo — igual que hacía el mock con su TODAY fijo.
+ *
+ * Compara días de calendario, no el instante exacto: `iso` puede traer
+ * hora (p. ej. `created_at` de un movimiento) y sin truncar a medianoche
+ * un evento de esta misma tarde redondeaba a "mañana".
  */
 export function daysFromToday(iso: string, today: string) {
-  const ms = toUTC(iso).getTime() - toUTC(today).getTime();
+  const ms = startOfUTCDay(toUTC(iso)) - startOfUTCDay(toUTC(today));
   return Math.round(ms / 86_400_000);
 }
 

@@ -26,6 +26,7 @@ import { Icon } from "@/components/ui/icon";
 const EMOJI_CHOICES = [
   "🏠", "🛒", "🚌", "🩺", "🎬", "📺", "📚", "✈️",
   "💶", "🧑‍💻", "📈", "🧾", "🪙", "🎁", "🐶", "👶",
+  "🍔", "🍕", "☕", "👕", "👟", "🎮", "🎉", "🐱",
 ];
 
 interface CategoryFormValues {
@@ -149,7 +150,7 @@ export function CategoriesView({
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();
 
-  const [tab, setTab] = useState<"gasto" | "ingreso">("gasto");
+  const [tab, setTab] = useState<"todos" | "gasto" | "ingreso">("todos");
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [spending, setSpending] = useState<CategorySpending[]>(initialSpending);
 
@@ -159,7 +160,8 @@ export function CategoriesView({
   const [limitValue, setLimitValue] = useState("");
   const [deleting, setDeleting] = useState<Category | undefined>();
 
-  const categorias = categories.filter((c) => c.tipo === tab);
+  const categorias =
+    tab === "todos" ? categories : categories.filter((c) => c.tipo === tab);
 
   const handleSubmit = (values: CategoryFormValues) => {
     startTransition(async () => {
@@ -262,6 +264,7 @@ export function CategoriesView({
         value={tab}
         onChange={setTab}
         options={[
+          { value: "todos", label: "Todos" },
           { value: "gasto", label: "Gastos" },
           { value: "ingreso", label: "Ingresos" },
         ]}

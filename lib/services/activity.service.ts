@@ -1,13 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { mapActivity } from "@/lib/models/mappers";
-import { movementsByBudget } from "./movements.service";
 import { formatSigned } from "@/lib/format";
-import type { ActivityItem, ActivityKind } from "@/lib/types";
+import type { ActivityItem, ActivityKind, MovementType } from "@/lib/types";
 
 /**
  * Combina la actividad guardada (miembros, límites, recurrentes) con la
  * actividad de movimientos, que se deriva de la tabla `movements` en vez
  * de duplicarse — igual que hacía el mock.
+ *
+ * Usa `created_at` (cuándo se registró la fila), no `fecha` (la fecha del
+ * gasto/ingreso que elige quien lo crea): un movimiento con fecha pasada
+ * introducido hoy es actividad reciente aunque su `fecha` no lo sea.
  */
 export async function recentActivity(
   budgetId: string,
@@ -15,8 +18,13 @@ export async function recentActivity(
 ): Promise<ActivityItem[]> {
   const supabase = await createClient();
 
-  const [movs, activityResult] = await Promise.all([
-    movementsByBudget(budgetId),
+  const [movsResult, activityResult] = await Promise.all([
+    supabase
+      .from("movements")
+      .select("id, tipo, concepto, cantidad, user_id, created_at")
+      .eq("budget_id", budgetId)
+      .order("created_at", { ascending: false })
+      .limit(n),
     supabase
       .from("activity")
       .select("*")
@@ -24,16 +32,20 @@ export async function recentActivity(
       .order("fecha", { ascending: false })
       .limit(n),
   ]);
+  if (movsResult.error) throw movsResult.error;
   if (activityResult.error) throw activityResult.error;
 
-  const fromMovements: ActivityItem[] = movs.slice(0, n).map((m) => ({
-    id: `a-${m.id}`,
-    budgetId,
-    fecha: m.fecha,
-    texto: `añadió ${m.tipo === "gasto" ? "el gasto" : "el ingreso"} «${m.concepto}» (${formatSigned(m.cantidad, m.tipo)})`,
-    userId: m.userId,
-    tipo: "movimiento" as const,
-  }));
+  const fromMovements: ActivityItem[] = movsResult.data.map((m) => {
+    const tipo = m.tipo as MovementType;
+    return {
+      id: `a-${m.id}`,
+      budgetId,
+      fecha: m.created_at,
+      texto: `añadió ${tipo === "gasto" ? "el gasto" : "el ingreso"} «${m.concepto}» (${formatSigned(m.cantidad, tipo)})`,
+      userId: m.user_id,
+      tipo: "movimiento" as const,
+    };
+  });
 
   const extras = activityResult.data.map(mapActivity);
 
