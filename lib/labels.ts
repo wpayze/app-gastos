@@ -1,5 +1,6 @@
 import type {
   BudgetRole,
+  ForeignCurrency,
   Frequency,
   MemberStatus,
   PaymentMethod,
@@ -36,4 +37,16 @@ export const RECURRENT_STATUS_LABEL: Record<RecurrentStatus, string> = {
   activo: "Activo",
   pausado: "Pausado",
   finalizado: "Finalizado",
+};
+
+export const CURRENCY_LABEL: Record<"EUR" | ForeignCurrency, string> = {
+  EUR: "Euro (€)",
+  USD: "Dólar (US$)",
+  HNL: "Lempira (L)",
+};
+
+export const CURRENCY_SYMBOL: Record<"EUR" | ForeignCurrency, string> = {
+  EUR: "€",
+  USD: "US$",
+  HNL: "L",
 };

@@ -1,3 +1,5 @@
+import type { ForeignCurrency } from "./types";
+
 const money = new Intl.NumberFormat("es-ES", {
   style: "currency",
   currency: "EUR",
@@ -21,6 +23,32 @@ export function formatMoney(value: number, opts?: { compact?: boolean }) {
 export function formatSigned(value: number, tipo: "ingreso" | "gasto") {
   const sign = tipo === "ingreso" ? "+" : "−";
   return `${sign}${money.format(Math.abs(value))}`;
+}
+
+const FOREIGN_CURRENCY_SYMBOL: Record<ForeignCurrency, string> = {
+  USD: "US$",
+  HNL: "L",
+};
+
+/** Monto en su moneda original (USD/HNL) sin convertir, para mostrar junto al valor ya convertido a euros. */
+export function formatForeignMoney(value: number, moneda: ForeignCurrency) {
+  const amount = value.toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${FOREIGN_CURRENCY_SYMBOL[moneda]} ${amount}`;
+}
+
+/**
+ * Tasa de cambio (EUR por unidad) con más decimales que `formatMoney`:
+ * para monedas de valor pequeño (p. ej. el Lempira, ~0,03 €) dos
+ * decimales redondearían la tasa a algo irreconocible.
+ */
+export function formatRate(value: number) {
+  return `${value.toLocaleString("es-ES", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 6,
+  })} €`;
 }
 
 export function formatPct(value: number) {

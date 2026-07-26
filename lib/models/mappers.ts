@@ -103,6 +103,9 @@ export function mapMovement(row: MovementRow): Movement {
     metodoPago: (row.metodo_pago as Movement["metodoPago"]) ?? undefined,
     nota: row.nota ?? undefined,
     recurrentId: row.recurrent_id ?? undefined,
+    monedaOriginal: (row.moneda_original as Movement["monedaOriginal"]) ?? undefined,
+    cantidadOriginal: row.cantidad_original ?? undefined,
+    tasaCambio: row.tasa_cambio ?? undefined,
   };
 }
 

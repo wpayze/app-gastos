@@ -4,8 +4,8 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteMovementAction } from "@/app/movimientos/actions";
-import { formatDateLong, formatMoney } from "@/lib/format";
-import { PAYMENT_LABEL, FREQUENCY_LABEL } from "@/lib/labels";
+import { formatDateLong, formatForeignMoney, formatMoney, formatRate } from "@/lib/format";
+import { PAYMENT_LABEL, FREQUENCY_LABEL, CURRENCY_LABEL } from "@/lib/labels";
 import { useToast } from "@/lib/store";
 import type { Budget, Category, Movement, Recurrent, User } from "@/lib/types";
 import {
@@ -117,6 +117,12 @@ export function MovementDetail({
               className="text-4xl font-semibold"
             />
           </p>
+          {movement.monedaOriginal && movement.cantidadOriginal !== undefined && (
+            <p className="text-sm text-ink-soft">
+              Introducido como{" "}
+              {formatForeignMoney(movement.cantidadOriginal, movement.monedaOriginal)}
+            </p>
+          )}
           <h1 className="mt-1 text-lg font-semibold">{movement.concepto}</h1>
           <p className="text-sm capitalize text-ink-soft">
             {formatDateLong(movement.fecha)}
@@ -149,6 +155,14 @@ export function MovementDetail({
           {movement.metodoPago && (
             <DetailRow label="Método de pago">
               {PAYMENT_LABEL[movement.metodoPago]}
+            </DetailRow>
+          )}
+          {movement.monedaOriginal && movement.tasaCambio !== undefined && (
+            <DetailRow label="Tasa de cambio">
+              1 {movement.monedaOriginal} = {formatRate(movement.tasaCambio)}
+              <span className="ml-1 text-xs text-ink-faint">
+                ({CURRENCY_LABEL[movement.monedaOriginal]})
+              </span>
             </DetailRow>
           )}
           {recurrent && (

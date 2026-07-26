@@ -12,6 +12,7 @@ import {
 } from "@/lib/calendar";
 import type {
   CategorySpending,
+  ForeignCurrency,
   MonthSummary,
   Movement,
   MovementType,
@@ -221,6 +222,7 @@ export interface MovementInput {
   budgetId: string;
   tipo: MovementType;
   concepto: string;
+  /** Siempre en euros — si viene de una moneda extranjera, ya convertido. */
   cantidad: number;
   categoriaId: string;
   fecha: string;
@@ -228,6 +230,10 @@ export interface MovementInput {
   metodoPago?: PaymentMethod;
   nota?: string;
   recurrentId?: string;
+  /** Dato histórico: presentes solo si se introdujo en USD/HNL. */
+  monedaOriginal?: ForeignCurrency;
+  cantidadOriginal?: number;
+  tasaCambio?: number;
 }
 
 export async function createMovement(input: MovementInput): Promise<Movement> {
@@ -245,6 +251,9 @@ export async function createMovement(input: MovementInput): Promise<Movement> {
       metodo_pago: input.metodoPago ?? null,
       nota: input.nota ?? null,
       recurrent_id: input.recurrentId ?? null,
+      moneda_original: input.monedaOriginal ?? null,
+      cantidad_original: input.cantidadOriginal ?? null,
+      tasa_cambio: input.tasaCambio ?? null,
     })
     .select("*")
     .single();
@@ -267,6 +276,9 @@ export async function updateMovement(
   if (input.metodoPago !== undefined) patch.metodo_pago = input.metodoPago;
   if (input.nota !== undefined) patch.nota = input.nota;
   if (input.recurrentId !== undefined) patch.recurrent_id = input.recurrentId;
+  if (input.monedaOriginal !== undefined) patch.moneda_original = input.monedaOriginal ?? null;
+  if (input.cantidadOriginal !== undefined) patch.cantidad_original = input.cantidadOriginal ?? null;
+  if (input.tasaCambio !== undefined) patch.tasa_cambio = input.tasaCambio ?? null;
 
   const { data, error } = await supabase
     .from("movements")

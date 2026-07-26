@@ -271,6 +271,9 @@ export type Database = {
           metodo_pago: string | null;
           nota: string | null;
           recurrent_id: string | null;
+          moneda_original: string | null;
+          cantidad_original: number | null;
+          tasa_cambio: number | null;
           created_at: string;
         };
         Insert: {
@@ -285,6 +288,9 @@ export type Database = {
           metodo_pago?: string | null;
           nota?: string | null;
           recurrent_id?: string | null;
+          moneda_original?: string | null;
+          cantidad_original?: number | null;
+          tasa_cambio?: number | null;
           created_at?: string;
         };
         Update: {
@@ -299,6 +305,9 @@ export type Database = {
           metodo_pago?: string | null;
           nota?: string | null;
           recurrent_id?: string | null;
+          moneda_original?: string | null;
+          cantidad_original?: number | null;
+          tasa_cambio?: number | null;
           created_at?: string;
         };
         Relationships: [
@@ -373,6 +382,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      exchange_rates: {
+        Row: {
+          moneda: string;
+          tasa_eur: number;
+          actualizado_at: string;
+        };
+        Insert: {
+          moneda: string;
+          tasa_eur: number;
+          actualizado_at?: string;
+        };
+        Update: {
+          moneda?: string;
+          tasa_eur?: number;
+          actualizado_at?: string;
+        };
+        Relationships: [];
       };
     };
     Views: {

@@ -12,6 +12,8 @@ export type MemberStatus = "activo" | "pendiente" | "suspendido";
 export type BudgetStatus = "activo" | "archivado";
 export type RecurrentStatus = "activo" | "pausado" | "finalizado";
 export type Frequency = "semanal" | "quincenal" | "mensual" | "anual";
+/** Monedas en las que se puede introducir un movimiento, aparte del euro base. */
+export type ForeignCurrency = "USD" | "HNL";
 
 export interface User {
   id: string;
@@ -67,6 +69,14 @@ export interface Movement {
   nota?: string;
   /** Presente si el movimiento fue generado por un recurrente */
   recurrentId?: string;
+  /**
+   * Presentes solo si se introdujo en dólares o lempiras: `cantidad` siempre
+   * queda en euros (ya convertido), esto es el dato histórico de cómo se
+   * introdujo originalmente y con qué tasa se convirtió.
+   */
+  monedaOriginal?: ForeignCurrency;
+  cantidadOriginal?: number;
+  tasaCambio?: number;
 }
 
 export interface Recurrent {

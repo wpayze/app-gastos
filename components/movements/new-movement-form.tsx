@@ -1,22 +1,26 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActiveBudget, useCurrentUser, useToast } from "@/lib/store";
-import { createMovementAction, updateMovementAction } from "@/app/movimientos/actions";
-import { PAYMENT_LABEL, FREQUENCY_LABEL } from "@/lib/labels";
-import { formatMoney } from "@/lib/format";
+import {
+  createMovementAction,
+  previewConversionAction,
+  updateMovementAction,
+} from "@/app/movimientos/actions";
+import { PAYMENT_LABEL, CURRENCY_SYMBOL } from "@/lib/labels";
+import { formatForeignMoney, formatMoney, formatRate } from "@/lib/format";
 import type {
   Category,
-  Frequency,
+  ForeignCurrency,
   Movement,
   MovementType,
   PaymentMethod,
   User,
 } from "@/lib/types";
 import { Card, cx } from "@/components/ui/primitives";
-import { Field, Input, Select, Textarea, Toggle } from "@/components/ui/forms";
+import { Field, Input, Select, Textarea } from "@/components/ui/forms";
 import { Icon } from "@/components/ui/icon";
 import { QuickCreateCategory } from "@/components/categories/quick-create-category";
 
@@ -24,6 +28,16 @@ interface Errors {
   cantidad?: string;
   concepto?: string;
   categoria?: string;
+}
+
+/** Deja solo dígitos y un separador decimal (coma o punto) — descarta el resto según se escribe. */
+function sanitizeAmountInput(raw: string): string {
+  const cleaned = raw.replace(/[^0-9.,]/g, "");
+  const sepIndex = cleaned.search(/[.,]/);
+  if (sepIndex === -1) return cleaned;
+  return (
+    cleaned.slice(0, sepIndex + 1) + cleaned.slice(sepIndex + 1).replace(/[.,]/g, "")
+  );
 }
 
 export function NewMovementForm({
@@ -52,14 +66,20 @@ export function NewMovementForm({
   const [categoryList, setCategoryList] = useState<Category[]>(categories);
   const [tipo, setTipo] = useState<MovementType>(initialTipo);
   const [cantidad, setCantidad] = useState(base ? String(base.cantidad) : "");
+  const [moneda, setMoneda] = useState<"EUR" | ForeignCurrency>("EUR");
+  const [preview, setPreview] = useState<{ tasa: number; convertido: number } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [concepto, setConcepto] = useState(base?.concepto ?? "");
   const [categoria, setCategoria] = useState(base?.categoriaId ?? "");
   const [fecha, setFecha] = useState(base?.fecha ?? today);
   const [responsable, setResponsable] = useState(base?.userId ?? currentUser.id);
   const [metodo, setMetodo] = useState<PaymentMethod>(base?.metodoPago ?? "tarjeta");
   const [nota, setNota] = useState(base?.nota ?? "");
-  const [esRecurrente, setEsRecurrente] = useState(false);
-  const [frecuencia, setFrecuencia] = useState<Frequency>("mensual");
+  // "Marcar como recurrente" deshabilitado a pedido — no interesa esta
+  // integración cruzada por ahora. El código queda comentado, no borrado,
+  // porque sí funciona (crea el Recurrent vinculado correctamente).
+  // const [esRecurrente, setEsRecurrente] = useState(false);
+  // const [frecuencia, setFrecuencia] = useState<Frequency>("mensual");
   const [comprobante, setComprobante] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [done, setDone] = useState(false);
@@ -72,6 +92,43 @@ export function NewMovementForm({
   const miembrosActivos = activeBudget.miembros.filter(
     (m) => m.estado === "activo",
   );
+
+  // Conversión a euros: se recalcula sola (con caché de 24h detrás) cada
+  // vez que cambia la moneda o el monto, para mostrar el preview antes de
+  // guardar. La misma conversión se vuelve a hacer en el servidor al
+  // enviar el formulario — este preview es solo para que el usuario vea
+  // el valor aproximado antes de confirmar.
+  useEffect(() => {
+    let cancelled = false;
+    const n = Number(cantidad.replace(",", "."));
+    const valid = !editing && moneda !== "EUR" && cantidad && !Number.isNaN(n) && n > 0;
+
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      if (!valid) {
+        setPreview(null);
+        setPreviewLoading(false);
+        return;
+      }
+      setPreviewLoading(true);
+      previewConversionAction(moneda as ForeignCurrency, n)
+        .then((result) => {
+          if (!cancelled) setPreview(result);
+        })
+        .catch((err) => {
+          console.error("previewConversionAction falló:", err);
+          if (!cancelled) setPreview(null);
+        })
+        .finally(() => {
+          if (!cancelled) setPreviewLoading(false);
+        });
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [editing, moneda, cantidad]);
 
   const validate = (): boolean => {
     const next: Errors = {};
@@ -88,6 +145,10 @@ export function NewMovementForm({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    if (!editing && moneda !== "EUR" && !preview) {
+      toast("Espera a que se calcule la conversión a euros.", "danger");
+      return;
+    }
 
     const values = {
       tipo,
@@ -98,6 +159,10 @@ export function NewMovementForm({
       userId: responsable,
       metodoPago: metodo,
       nota: nota.trim() || undefined,
+      monedaOriginal:
+        !editing && moneda !== "EUR" ? moneda : undefined,
+      cantidadOriginal:
+        !editing && moneda !== "EUR" ? Number(cantidad.replace(",", ".")) : undefined,
     };
 
     startTransition(async () => {
@@ -109,7 +174,8 @@ export function NewMovementForm({
           await createMovementAction(
             budgetId,
             values,
-            esRecurrente ? { frecuencia } : undefined,
+            // "Marcar como recurrente" deshabilitado — ver nota más arriba.
+            undefined,
           );
           toast(tipo === "gasto" ? "Gasto creado" : "Ingreso creado");
         }
@@ -123,12 +189,14 @@ export function NewMovementForm({
   const reset = () => {
     setTipo("gasto");
     setCantidad("");
+    setMoneda("EUR");
+    setPreview(null);
     setConcepto("");
     setCategoria("");
     setFecha(today);
     setResponsable(currentUser.id);
     setNota("");
-    setEsRecurrente(false);
+    // setEsRecurrente(false);
     setComprobante(false);
     setErrors({});
     setDone(false);
@@ -136,6 +204,11 @@ export function NewMovementForm({
 
   // Pantalla de confirmación
   if (done) {
+    const n = Number(cantidad.replace(",", ".")) || 0;
+    const montoTexto =
+      moneda === "EUR"
+        ? formatMoney(n)
+        : `${formatForeignMoney(n, moneda)} (≈ ${formatMoney(preview?.convertido ?? 0)})`;
     return (
       <div className="mx-auto max-w-xl">
         <Card className="flex flex-col items-center gap-4 px-6 py-12 text-center">
@@ -151,8 +224,7 @@ export function NewMovementForm({
                   : "Ingreso registrado"}
             </h1>
             <p className="mt-1 text-sm text-ink-soft">
-              «{concepto}» por {formatMoney(Number(cantidad.replace(",", ".")) || 0)} en{" "}
-              {activeBudget.nombre}.
+              «{concepto}» por {montoTexto} en {activeBudget.nombre}.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
@@ -223,20 +295,50 @@ export function NewMovementForm({
       <form onSubmit={submit} noValidate>
         <Card className="space-y-4 p-5">
           <Field label="Cantidad" error={errors.cantidad}>
-            <div className="relative">
-              <Input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={cantidad}
-                onChange={(e) => setCantidad(e.target.value)}
-                invalid={Boolean(errors.cantidad)}
-                className="amount pr-8 text-lg font-semibold"
-                autoFocus
-              />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint">
-                €
-              </span>
+            <div className="flex gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Input
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={cantidad}
+                  onChange={(e) => setCantidad(sanitizeAmountInput(e.target.value))}
+                  invalid={Boolean(errors.cantidad)}
+                  className="amount pr-12 text-lg font-semibold"
+                  autoFocus
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint">
+                  {CURRENCY_SYMBOL[moneda]}
+                </span>
+              </div>
+              {!editing && (
+                <div className="w-24 shrink-0">
+                  <Select
+                    value={moneda}
+                    onChange={(e) => setMoneda(e.target.value as "EUR" | ForeignCurrency)}
+                    aria-label="Moneda"
+                  >
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="HNL">HNL</option>
+                  </Select>
+                </div>
+              )}
             </div>
+            {!editing && moneda !== "EUR" && (
+              <p className="mt-1.5 text-xs text-ink-faint">
+                {previewLoading
+                  ? "Calculando conversión…"
+                  : preview
+                    ? `≈ ${formatMoney(preview.convertido)} (1 ${moneda} = ${formatRate(preview.tasa)})`
+                    : "No se pudo calcular la conversión."}
+              </p>
+            )}
+            {editing && base?.monedaOriginal && (
+              <p className="mt-1.5 text-xs text-ink-faint">
+                Introducido originalmente como{" "}
+                {formatForeignMoney(base.cantidadOriginal ?? 0, base.monedaOriginal)}
+              </p>
+            )}
           </Field>
 
           <Field label="Concepto" error={errors.concepto}>
@@ -315,6 +417,7 @@ export function NewMovementForm({
             />
           </Field>
 
+          {/* "Marcar como recurrente" deshabilitado — ver nota junto al estado más arriba.
           {!editing && (
             <div className="rounded-xl border border-line-soft bg-paper/60 px-4 py-2">
               <Toggle
@@ -339,6 +442,7 @@ export function NewMovementForm({
               )}
             </div>
           )}
+          */}
 
           {/* Comprobante (solo interfaz, sin almacenamiento real todavía) */}
           <button

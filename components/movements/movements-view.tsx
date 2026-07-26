@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useActiveBudget } from "@/lib/store";
 import { monthLabel } from "@/lib/calendar";
-import { formatWeekdayDay, formatMoney } from "@/lib/format";
+import { formatWeekdayDay, formatForeignMoney, formatMoney } from "@/lib/format";
 import type { Category, Movement, User } from "@/lib/types";
 import {
   Amount,
@@ -84,6 +84,9 @@ function MovementRow({
         </span>
         <span className="block truncate text-xs text-ink-faint">
           {cat.nombre} · {user.nombre.split(" ")[0]}
+          {m.monedaOriginal && m.cantidadOriginal !== undefined && (
+            <> · {formatForeignMoney(m.cantidadOriginal, m.monedaOriginal)}</>
+          )}
         </span>
       </span>
       <Amount
