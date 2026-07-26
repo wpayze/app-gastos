@@ -477,7 +477,18 @@ export function DashboardView({
 
             {/* Actividad reciente */}
             <section>
-              <SectionTitle>Actividad reciente</SectionTitle>
+              <SectionTitle
+                action={
+                  <Link
+                    href="/actividad"
+                    className="text-sm font-medium text-pine hover:underline"
+                  >
+                    Ver todo
+                  </Link>
+                }
+              >
+                Actividad reciente
+              </SectionTitle>
               <Card>
                 {actividad.length === 0 ? (
                   <p className="px-4 py-8 text-center text-sm text-ink-faint">

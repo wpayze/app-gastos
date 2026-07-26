@@ -375,7 +375,22 @@ export type Database = {
         ];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      budget_activity: {
+        Row: {
+          id: string;
+          budget_id: string;
+          tipo: string;
+          fecha: string;
+          user_id: string;
+          texto: string | null;
+          concepto: string | null;
+          cantidad: number | null;
+          movimiento_tipo: string | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       is_budget_member: {
         Args: { target_budget_id: string };

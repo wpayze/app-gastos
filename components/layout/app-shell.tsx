@@ -20,6 +20,7 @@ const NAV: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/presupuestos", label: "Presupuestos", icon: "wallet" },
   { href: "/usuarios", label: "Usuarios", icon: "users" },
   { href: "/categorias", label: "Categorías", icon: "tag" },
+  { href: "/actividad", label: "Actividad", icon: "activity" },
   { href: "/configuracion", label: "Configuración", icon: "settings" },
 ];
 

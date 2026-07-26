@@ -197,6 +197,7 @@ const ICONS = {
       <line x1="12" y1="8" x2="12.01" y2="8" />
     </>
   ),
+  activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
   sort: (
     <>
       <path d="M11 7 7 3 3 7" />
