@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useActiveBudget, useToast } from "@/lib/store";
 import { formatMoney, formatPct } from "@/lib/format";
 import type { Category, CategorySpending, MovementType } from "@/lib/types";
@@ -277,24 +278,29 @@ export function CategoriesView({
           return (
             <Card key={cat.id} className="p-4">
               <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-line-soft text-xl">
-                  {cat.emoji}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h2 className="truncate text-sm font-semibold">
-                      {cat.nombre}
-                    </h2>
-                    <Badge variant={cat.tipo === "gasto" ? "red" : "green"}>
-                      {cat.tipo === "gasto" ? "Gasto" : "Ingreso"}
-                    </Badge>
+                <Link
+                  href={`/movimientos?categoria=${cat.id}`}
+                  className="flex min-w-0 flex-1 items-start gap-3"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-line-soft text-xl">
+                    {cat.emoji}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h2 className="truncate text-sm font-semibold">
+                        {cat.nombre}
+                      </h2>
+                      <Badge variant={cat.tipo === "gasto" ? "red" : "green"}>
+                        {cat.tipo === "gasto" ? "Gasto" : "Ingreso"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-ink-faint">
+                      {sinUso
+                        ? "Sin movimientos este mes"
+                        : `${s.count} ${s.count === 1 ? "movimiento" : "movimientos"} este mes`}
+                    </p>
                   </div>
-                  <p className="text-xs text-ink-faint">
-                    {sinUso
-                      ? "Sin movimientos este mes"
-                      : `${s.count} ${s.count === 1 ? "movimiento" : "movimientos"} este mes`}
-                  </p>
-                </div>
+                </Link>
                 <Menu
                   label={`Opciones de ${cat.nombre}`}
                   items={[
@@ -330,7 +336,7 @@ export function CategoriesView({
                 />
               </div>
 
-              <div className="mt-3">
+              <Link href={`/movimientos?categoria=${cat.id}`} className="mt-3 block">
                 {sinUso ? (
                   <p className="rounded-lg bg-paper px-3 py-2 text-center text-xs text-ink-faint">
                     {cat.tipo === "gasto"
@@ -362,7 +368,7 @@ export function CategoriesView({
                     )}
                   </>
                 )}
-              </div>
+              </Link>
             </Card>
           );
         })}

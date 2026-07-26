@@ -19,6 +19,12 @@ import { Icon } from "@/components/ui/icon";
 type TypeFilter = "todos" | "ingresos" | "gastos" | "recurrentes";
 type SortKey = "reciente" | "antiguo" | "mayor" | "menor";
 
+const SORT_KEYS: SortKey[] = ["reciente", "antiguo", "mayor", "menor"];
+
+function isSortKey(value: string | undefined): value is SortKey {
+  return SORT_KEYS.includes(value as SortKey);
+}
+
 const SORT_LABEL: Record<SortKey, string> = {
   reciente: "Más reciente primero",
   antiguo: "Más antiguo primero",
@@ -103,18 +109,24 @@ export function MovementsView({
   movements,
   categories,
   profiles,
+  initialCategoria,
+  initialSort,
 }: {
   movements: Movement[];
   categories: Category[];
   profiles: User[];
+  initialCategoria?: string;
+  initialSort?: string;
 }) {
   const { activeBudget } = useActiveBudget();
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("todos");
-  const [sort, setSort] = useState<SortKey>("reciente");
+  const [sort, setSort] = useState<SortKey>(
+    isSortKey(initialSort) ? initialSort : "reciente",
+  );
   const [showFilters, setShowFilters] = useState(false);
-  const [categoria, setCategoria] = useState("todas");
+  const [categoria, setCategoria] = useState(initialCategoria ?? "todas");
   const [usuario, setUsuario] = useState("todos");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");

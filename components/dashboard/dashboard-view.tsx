@@ -335,7 +335,7 @@ export function DashboardView({
               <SectionTitle
                 action={
                   <Link
-                    href="/movimientos"
+                    href="/movimientos?orden=mayor"
                     className="text-sm font-medium text-pine hover:underline"
                   >
                     Ver todos
