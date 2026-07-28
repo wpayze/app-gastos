@@ -161,8 +161,16 @@ export function CategoriesView({
   const [limitValue, setLimitValue] = useState("");
   const [deleting, setDeleting] = useState<Category | undefined>();
 
-  const categorias =
-    tab === "todos" ? categories : categories.filter((c) => c.tipo === tab);
+  // Siempre de mayor a menor gasto/ingreso del mes, sin opción de cambiarlo.
+  const categorias = (
+    tab === "todos" ? categories : categories.filter((c) => c.tipo === tab)
+  )
+    .slice()
+    .sort(
+      (a, b) =>
+        statsFor(b, spending, ingresoStats).total -
+        statsFor(a, spending, ingresoStats).total,
+    );
 
   const handleSubmit = (values: CategoryFormValues) => {
     startTransition(async () => {
