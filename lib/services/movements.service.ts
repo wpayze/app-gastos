@@ -3,6 +3,7 @@ import { mapMovement } from "@/lib/models/mappers";
 import type { Database } from "@/lib/supabase/database.types";
 import { listCategories, getCategoryLimits } from "./categories.service";
 import {
+  addDays,
   currentMonthKey,
   isoToMonthKey,
   monthsBetween,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/calendar";
 import type {
   CategorySpending,
+  DailyExpense,
   ForeignCurrency,
   MonthSummary,
   Movement,
@@ -155,6 +157,39 @@ export async function topExpenses(
     .limit(n);
   if (error) throw error;
   return data.map(mapMovement);
+}
+
+/**
+ * Gasto total por día de los últimos `days` días (hoy inclusive), para el
+ * resumen "gasto por día" del dashboard. Siempre devuelve `days` entradas,
+ * con 0 en los días sin gastos — a diferencia de `movementsByMonth`, el
+ * rango puede cruzar un límite de mes.
+ */
+export async function dailyExpenses(
+  budgetId: string,
+  today: string,
+  days = 5,
+): Promise<DailyExpense[]> {
+  const supabase = await createClient();
+  const from = addDays(today, -(days - 1));
+  const { data, error } = await supabase
+    .from("movements")
+    .select("fecha, cantidad")
+    .eq("budget_id", budgetId)
+    .eq("tipo", "gasto")
+    .gte("fecha", from)
+    .lte("fecha", today);
+  if (error) throw error;
+
+  const totals = new Map<string, number>();
+  for (const row of data) {
+    totals.set(row.fecha, round2((totals.get(row.fecha) ?? 0) + row.cantidad));
+  }
+
+  return Array.from({ length: days }, (_, i) => {
+    const fecha = addDays(today, -i);
+    return { fecha, total: totals.get(fecha) ?? 0 };
+  });
 }
 
 export async function categorySpending(

@@ -121,6 +121,12 @@ export interface MonthSummary {
   parcial: boolean;
 }
 
+export interface DailyExpense {
+  /** ISO yyyy-mm-dd */
+  fecha: string;
+  total: number;
+}
+
 export interface CategorySpending {
   categoria: Category;
   gastado: number;

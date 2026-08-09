@@ -36,6 +36,14 @@ export function isoToMonthKey(iso: string): string {
   return iso.slice(0, 7);
 }
 
+/** Fecha ISO (yyyy-mm-dd) desplazada `delta` días (negativo = hacia atrás). */
+export function addDays(iso: string, delta: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + delta);
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+}
+
 function monthDate(key: string): Date {
   const [y, m] = key.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, 1));

@@ -101,6 +101,29 @@ const weekdayDay = new Intl.DateTimeFormat("es-ES", {
   timeZone: "UTC",
 });
 
+const dayMonthLong = new Intl.DateTimeFormat("es-ES", {
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+
+/** "3 de agosto" */
+export function formatDayMonth(iso: string) {
+  return dayMonthLong.format(toUTC(iso));
+}
+
+const weekdayOnly = new Intl.DateTimeFormat("es-ES", {
+  weekday: "long",
+  timeZone: "UTC",
+});
+
+/** "Domingo 3 de agosto" (sin coma, solo la primera letra en mayúscula) */
+export function formatWeekdayDayMonth(iso: string) {
+  const date = toUTC(iso);
+  const weekday = weekdayOnly.format(date);
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${dayMonthLong.format(date)}`;
+}
+
 export function formatDate(iso: string) {
   return dayMonthYear.format(toUTC(iso));
 }

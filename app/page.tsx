@@ -5,14 +5,12 @@ import {
   topExpenses,
   categorySpending,
   categoryAlerts,
+  dailyExpenses,
   hasAnyMovements,
   availableMonths,
   movementsByMonth,
 } from "@/lib/services/movements.service";
-import {
-  recurrentsByBudget,
-  upcomingRecurrents,
-} from "@/lib/services/recurrents.service";
+import { recurrentsByBudget } from "@/lib/services/recurrents.service";
 import { recentActivity } from "@/lib/services/activity.service";
 import { listCategories } from "@/lib/services/categories.service";
 import { listProfiles } from "@/lib/services/profiles.service";
@@ -30,6 +28,8 @@ export default async function DashboardPage({
   const realCurrentMonth = currentMonthKey();
   const month = sp.mes ?? realCurrentMonth;
 
+  const today = todayISO();
+
   const [
     months,
     hasAnyData,
@@ -38,7 +38,7 @@ export default async function DashboardPage({
     gastosTop,
     porCategoriaAll,
     alertas,
-    proximos,
+    gastosPorDia,
     actividad,
     categories,
     profiles,
@@ -52,7 +52,7 @@ export default async function DashboardPage({
     topExpenses(activeBudgetId, month),
     categorySpending(activeBudgetId, month),
     categoryAlerts(activeBudgetId, month),
-    upcomingRecurrents(activeBudgetId),
+    dailyExpenses(activeBudgetId, today, 5),
     recentActivity(activeBudgetId, 6),
     listCategories(),
     listProfiles(),
@@ -79,11 +79,11 @@ export default async function DashboardPage({
       gastosTop={gastosTop}
       porCategoria={porCategoria}
       alertas={alertas}
-      proximos={proximos}
+      gastosPorDia={gastosPorDia}
       actividad={actividad}
       categories={categories}
       profiles={profiles}
-      today={todayISO()}
+      today={today}
       pendingRecurrentsCount={pendingRecurrentsCount}
     />
   );

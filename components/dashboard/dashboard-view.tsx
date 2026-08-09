@@ -8,17 +8,17 @@ import {
   formatDateShort,
   formatMoney,
   formatPct,
+  formatWeekdayDayMonth,
   pctChange,
   relativeDay,
 } from "@/lib/format";
-import { FREQUENCY_LABEL } from "@/lib/labels";
 import type {
   ActivityItem,
   Category,
   CategorySpending,
+  DailyExpense,
   Movement,
   MonthSummary,
-  Recurrent,
   User,
 } from "@/lib/types";
 import type { MonthOption } from "@/lib/calendar";
@@ -112,6 +112,12 @@ function findProfile(profiles: User[], id: string): User {
   return profiles.find((u) => u.id === id) ?? { ...FALLBACK_USER, id };
 }
 
+/** "Domingo 3 de agosto" o "Domingo 3 de agosto (Hoy)" si es la fecha de hoy. */
+function dayLabel(fecha: string, today: string) {
+  const base = formatWeekdayDayMonth(fecha);
+  return fecha === today ? `${base} (Hoy)` : base;
+}
+
 export function DashboardView({
   months,
   month,
@@ -121,7 +127,7 @@ export function DashboardView({
   gastosTop,
   porCategoria,
   alertas,
-  proximos,
+  gastosPorDia,
   actividad,
   categories,
   profiles,
@@ -136,7 +142,7 @@ export function DashboardView({
   gastosTop: Movement[];
   porCategoria: CategorySpending[];
   alertas: CategorySpending[];
-  proximos: Recurrent[];
+  gastosPorDia: DailyExpense[];
   actividad: ActivityItem[];
   categories: Category[];
   profiles: User[];
@@ -428,50 +434,31 @@ export function DashboardView({
               </Card>
             </section>
 
-            {/* Próximos recurrentes */}
+            {/* Gasto por día */}
             <section>
-              <SectionTitle
-                action={
-                  <Link
-                    href="/recurrentes"
-                    className="text-sm font-medium text-pine hover:underline"
-                  >
-                    Ver todos
-                  </Link>
-                }
-              >
-                Próximos movimientos recurrentes
-              </SectionTitle>
+              <SectionTitle>Gasto de los últimos 5 días</SectionTitle>
               <Card>
-                {proximos.length === 0 ? (
-                  <p className="px-4 py-8 text-center text-sm text-ink-faint">
-                    No hay recurrentes programados.
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-line-soft">
-                    {proximos.map((r) => (
-                      <li key={r.id} className="flex items-center gap-3 px-4 py-3">
-                        <span className="rounded-full bg-line-soft p-2 text-ink-soft">
-                          <Icon name="repeat" size={15} />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium">
-                            {r.nombre}
-                          </span>
-                          <span className="block text-xs text-ink-faint">
-                            {FREQUENCY_LABEL[r.frecuencia]} · {relativeDay(r.proximaFecha, today)}
-                          </span>
-                        </span>
+                <ul className="divide-y divide-line-soft">
+                  {gastosPorDia.map((d) => (
+                    <li
+                      key={d.fecha}
+                      className="flex items-center justify-between gap-3 px-4 py-3"
+                    >
+                      <span className="text-sm font-medium">
+                        {dayLabel(d.fecha, today)}
+                      </span>
+                      {d.total > 0 ? (
                         <Amount
-                          value={r.cantidad}
-                          tipo={r.tipo}
-                          signed
+                          value={d.total}
+                          tipo="gasto"
                           className="text-sm font-semibold"
                         />
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                      ) : (
+                        <span className="text-sm text-ink-faint">Sin gastos</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </Card>
             </section>
 
