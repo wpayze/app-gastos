@@ -1,32 +1,18 @@
-/**
- * Google Apps Script: envía a la app cada compra que llega por correo del banco.
- *
- * Instalación:
- *  1. script.google.com → Nuevo proyecto → pega este archivo.
- *  2. Configuración del proyecto → Propiedades del script: WEBHOOK_URL
- *     (https://TU-DOMINIO/api/webhooks/bank-email) y WEBHOOK_SECRET (el mismo
- *     valor que BANK_WEBHOOK_SECRET en la app).
- *  3. En Gmail crea una etiqueta "banco-compras" y un filtro que la aplique a
- *     los correos de compra del banco.
- *  4. Activadores → añadir activador: processBankEmails, basado en tiempo, cada 5 min.
- *
- * Los mensajes ya enviados se marcan con la etiqueta "banco-enviado"; además
- * la app ignora duplicados por message_id, así que reintentar es seguro.
- */
-
-const SOURCE_LABEL = "banco-compras";
-const SENT_LABEL = "banco-enviado";
+const SOURCE_LABEL = "bac-compras";
+const SENT_LABEL = "bac-registrado";
 
 function processBankEmails() {
   const props = PropertiesService.getScriptProperties();
   const url = props.getProperty("WEBHOOK_URL");
   const secret = props.getProperty("WEBHOOK_SECRET");
-  const source = GmailApp.getUserLabelByName(SOURCE_LABEL);
-  if (!source) throw new Error("Falta la etiqueta " + SOURCE_LABEL);
+  if (!GmailApp.getUserLabelByName(SOURCE_LABEL)) {
+    throw new Error("Falta la etiqueta " + SOURCE_LABEL);
+  }
   const sent = GmailApp.getUserLabelByName(SENT_LABEL) || GmailApp.createLabel(SENT_LABEL);
 
-  source.getThreads(0, 50).forEach((thread) => {
-    if (thread.getLabels().some((l) => l.getName() === SENT_LABEL)) return;
+  // Una sola búsqueda: solo hilos pendientes de enviar y de la última semana.
+  const query = "label:" + SOURCE_LABEL + " -label:" + SENT_LABEL + " newer_than:7d";
+  GmailApp.search(query, 0, 50).forEach((thread) => {
     let allOk = true;
     thread.getMessages().forEach((message) => {
       const purchase = parsePurchase(message);
@@ -48,21 +34,39 @@ function processBankEmails() {
 }
 
 /**
- * AJUSTAR al formato real del correo del banco. Debe devolver
- * { message_id, importe, moneda, comercio, fecha (yyyy-mm-dd), asunto } o null.
+ * Correos "BAC Credomatic Informa" (notificacion_hn@baccredomatic.com). En el
+ * texto plano, comercio y monto van en líneas consecutivas tras sus etiquetas:
+ *
+ *   Comercio / Monto / WWW.AMAZON / EUR 43.46 / Horario / 2026/10/21-15:58:13
+ *
+ * Devuelve { message_id, importe, moneda, comercio, fecha (yyyy-mm-dd), asunto }
+ * o null si el correo no es una compra aprobada que sepamos leer.
  */
+const CURRENCY_MAP = { EUR: "EUR", USD: "USD", HNL: "HNL", LPS: "HNL", L: "HNL" };
+
 function parsePurchase(message) {
   const body = message.getPlainBody();
-  const amount = body.match(/(\d+(?:[.,]\d{1,2})?)\s*(EUR|€|USD|\$)/i);
-  const merchant = body.match(/(?:en|comercio:?)\s+([^\n.]+)/i);
-  if (!amount || !merchant) return null;
-  const currency = /usd|\$/i.test(amount[2]) ? "USD" : "EUR";
+  if (!/Aprobada/i.test(body)) return null;
+
+  const detail = body.match(/Comercio\s*\n\s*Monto\s*\n\s*([^\n]+)\n\s*([A-Za-z]{1,3})\s+([\d.,]+)/);
+  const when = body.match(/(\d{4})\/(\d{2})\/(\d{2})-\d{2}:\d{2}/);
+  if (!detail || !when) return null;
+
+  const moneda = CURRENCY_MAP[detail[2].toUpperCase()];
+  if (!moneda) {
+    console.warn("Moneda no soportada: " + detail[2] + " (" + message.getId() + ")");
+    return null;
+  }
+
+  const card = body.match(/(MASTERCARD|VISA)\s+(\d{4})/i);
+  const kind = body.match(/Tipo de compra\s*\n\s*Estado\s*\n\s*([^\n]+)/);
+
   return {
     message_id: message.getId(),
-    importe: Number(amount[1].replace(",", ".")),
-    moneda: currency,
-    comercio: merchant[1].trim(),
-    fecha: Utilities.formatDate(message.getDate(), "Europe/Madrid", "yyyy-MM-dd"),
-    asunto: message.getSubject(),
+    importe: Number(detail[3].replace(/,/g, "")),
+    moneda: moneda,
+    comercio: detail[1].trim(),
+    fecha: when[1] + "-" + when[2] + "-" + when[3],
+    asunto: [card && card[1] + " " + card[2], kind && kind[1].trim()].filter(Boolean).join(" · "),
   };
 }
