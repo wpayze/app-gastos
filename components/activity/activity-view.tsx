@@ -92,9 +92,7 @@ export function ActivityView({
             href={page > 1 ? `/actividad?pagina=${page - 1}` : "#"}
             aria-disabled={page <= 1}
             className={
-              page <= 1
-                ? "btn-secondary pointer-events-none opacity-50"
-                : "btn-secondary"
+              page <= 1 ? "btn-secondary pointer-events-none opacity-50" : "btn-secondary"
             }
           >
             <Icon name="chevronLeft" size={16} />

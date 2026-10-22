@@ -2,11 +2,7 @@
 // Cuando exista backend, estos tipos serán el contrato de la API.
 
 export type MovementType = "ingreso" | "gasto";
-export type PaymentMethod =
-  | "tarjeta"
-  | "efectivo"
-  | "transferencia"
-  | "domiciliacion";
+export type PaymentMethod = "tarjeta" | "efectivo" | "transferencia" | "domiciliacion";
 export type BudgetRole = "administrador" | "editor" | "lectura";
 export type MemberStatus = "activo" | "pendiente" | "suspendido";
 export type BudgetStatus = "activo" | "archivado";

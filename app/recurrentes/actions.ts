@@ -47,19 +47,10 @@ export async function updateRecurrentAction(
   return recurrent;
 }
 
-export async function pauseRecurrentAction(
-  id: string,
-  budgetId: string,
-  nombre: string,
-) {
+export async function pauseRecurrentAction(id: string, budgetId: string, nombre: string) {
   const user = await requireCurrentUser();
   await pauseRecurrent(id);
-  await logActivity(
-    budgetId,
-    user.id,
-    "recurrente",
-    `pausó el recurrente «${nombre}»`,
-  );
+  await logActivity(budgetId, user.id, "recurrente", `pausó el recurrente «${nombre}»`);
   revalidatePath("/recurrentes");
 }
 
@@ -70,12 +61,7 @@ export async function resumeRecurrentAction(
 ) {
   const user = await requireCurrentUser();
   await resumeRecurrent(id);
-  await logActivity(
-    budgetId,
-    user.id,
-    "recurrente",
-    `reanudó el recurrente «${nombre}»`,
-  );
+  await logActivity(budgetId, user.id, "recurrente", `reanudó el recurrente «${nombre}»`);
   revalidatePath("/recurrentes");
 }
 
@@ -89,10 +75,7 @@ export async function deleteRecurrentAction(id: string) {
  * proximaFecha a partir de esa misma fecha (no de la que tenía guardada:
  * el cobro real pudo caer en un día distinto al esperado).
  */
-export async function addRecurrentMovementAction(
-  recurrentId: string,
-  fecha: string,
-) {
+export async function addRecurrentMovementAction(recurrentId: string, fecha: string) {
   const recurrent = await getRecurrentById(recurrentId);
   if (!recurrent) throw new Error("Recurrente no encontrado.");
 

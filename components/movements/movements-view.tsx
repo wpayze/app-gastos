@@ -6,12 +6,7 @@ import { useActiveBudget } from "@/lib/store";
 import { monthLabel } from "@/lib/calendar";
 import { formatWeekdayDay, formatForeignMoney, formatMoney } from "@/lib/format";
 import type { Category, Movement, User } from "@/lib/types";
-import {
-  Amount,
-  Badge,
-  Card,
-  cx,
-} from "@/components/ui/primitives";
+import { Amount, Badge, Card, cx } from "@/components/ui/primitives";
 import { FilterChips, Field, Input, Select } from "@/components/ui/forms";
 import { EmptyState } from "@/components/ui/states";
 import { Icon } from "@/components/ui/icon";
@@ -172,7 +167,19 @@ export function MovementsView({
     if (sort === "mayor") list.sort((a, b) => b.cantidad - a.cantidad);
     if (sort === "menor") list.sort((a, b) => a.cantidad - b.cantidad);
     return list;
-  }, [movements, categories, search, typeFilter, categoria, usuario, desde, hasta, min, max, sort]);
+  }, [
+    movements,
+    categories,
+    search,
+    typeFilter,
+    categoria,
+    usuario,
+    desde,
+    hasta,
+    min,
+    max,
+    sort,
+  ]);
 
   // Agrupación por mes y fecha (solo con orden cronológico)
   const grouped = useMemo(() => {
@@ -277,10 +284,7 @@ export function MovementsView({
         {showFilters && (
           <Card className="fade-enter grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Categoría">
-              <Select
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value)}
-              >
+              <Select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
                 <option value="todas">Todas las categorías</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -290,10 +294,7 @@ export function MovementsView({
               </Select>
             </Field>
             <Field label="Usuario">
-              <Select
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
-              >
+              <Select value={usuario} onChange={(e) => setUsuario(e.target.value)}>
                 <option value="todos">Todos los usuarios</option>
                 {memberProfiles.map((u) => (
                   <option key={u.id} value={u.id}>
@@ -405,7 +406,11 @@ export function MovementsView({
                       <ul className="divide-y divide-line-soft">
                         {movs.map((m) => (
                           <li key={m.id}>
-                            <MovementRow m={m} categories={categories} profiles={profiles} />
+                            <MovementRow
+                              m={m}
+                              categories={categories}
+                              profiles={profiles}
+                            />
                           </li>
                         ))}
                       </ul>
@@ -419,8 +424,7 @@ export function MovementsView({
       ) : (
         <Card>
           <div className="border-b border-line-soft px-4 py-2 text-xs text-ink-faint">
-            {filtered.length} movimientos ordenados por{" "}
-            {SORT_LABEL[sort].toLowerCase()}
+            {filtered.length} movimientos ordenados por {SORT_LABEL[sort].toLowerCase()}
             <Badge variant="outline" className="ml-2">
               Sin agrupar
             </Badge>

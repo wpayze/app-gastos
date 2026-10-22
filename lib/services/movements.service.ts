@@ -311,8 +311,10 @@ export async function updateMovement(
   if (input.metodoPago !== undefined) patch.metodo_pago = input.metodoPago;
   if (input.nota !== undefined) patch.nota = input.nota;
   if (input.recurrentId !== undefined) patch.recurrent_id = input.recurrentId;
-  if (input.monedaOriginal !== undefined) patch.moneda_original = input.monedaOriginal ?? null;
-  if (input.cantidadOriginal !== undefined) patch.cantidad_original = input.cantidadOriginal ?? null;
+  if (input.monedaOriginal !== undefined)
+    patch.moneda_original = input.monedaOriginal ?? null;
+  if (input.cantidadOriginal !== undefined)
+    patch.cantidad_original = input.cantidadOriginal ?? null;
   if (input.tasaCambio !== undefined) patch.tasa_cambio = input.tasaCambio ?? null;
 
   const { data, error } = await supabase

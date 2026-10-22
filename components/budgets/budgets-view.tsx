@@ -12,13 +12,7 @@ import {
   unarchiveBudgetAction,
   updateBudgetAction,
 } from "@/app/presupuestos/actions";
-import {
-  Amount,
-  Badge,
-  Card,
-  ProgressBar,
-  cx,
-} from "@/components/ui/primitives";
+import { Amount, Badge, Card, ProgressBar, cx } from "@/components/ui/primitives";
 import { ConfirmDialog, Menu, Sheet, type MenuItem } from "@/components/ui/overlays";
 import { Field, Input, Textarea } from "@/components/ui/forms";
 import { Icon } from "@/components/ui/icon";
@@ -94,7 +88,11 @@ function BudgetForm({
         />
       </Field>
       <div className="flex justify-end">
-        <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn-primary disabled:opacity-60"
+        >
           <Icon name="check" size={16} />
           {pending ? "Guardando…" : initial ? "Guardar cambios" : "Crear presupuesto"}
         </button>
@@ -127,7 +125,14 @@ export function BudgetsView({
 
   const summaryFor = (id: string) =>
     summaries.find((s) => s.budgetId === id) ?? {
-      summary: { month: "", ingresos: 0, gastos: 0, balance: 0, movimientos: 0, parcial: false },
+      summary: {
+        month: "",
+        ingresos: 0,
+        gastos: 0,
+        balance: 0,
+        movimientos: 0,
+        parcial: false,
+      },
       hasData: false,
     };
 
@@ -151,9 +156,7 @@ export function BudgetsView({
   };
 
   const handleArchive = (b: Budget) => {
-    setBudgets((l) =>
-      l.map((x) => (x.id === b.id ? { ...x, estado: "archivado" } : x)),
-    );
+    setBudgets((l) => l.map((x) => (x.id === b.id ? { ...x, estado: "archivado" } : x)));
     toast(`«${b.nombre}» archivado`, "info");
     startTransition(async () => {
       try {
@@ -165,9 +168,7 @@ export function BudgetsView({
   };
 
   const handleUnarchive = (b: Budget) => {
-    setBudgets((l) =>
-      l.map((x) => (x.id === b.id ? { ...x, estado: "activo" } : x)),
-    );
+    setBudgets((l) => l.map((x) => (x.id === b.id ? { ...x, estado: "activo" } : x)));
     toast(`«${b.nombre}» desarchivado`);
     startTransition(async () => {
       try {
@@ -235,8 +236,7 @@ export function BudgetsView({
               {
                 label: isArchived ? "Desarchivar" : "Archivar",
                 icon: "archive",
-                onClick: () =>
-                  isArchived ? handleUnarchive(b) : setArchiving(b),
+                onClick: () => (isArchived ? handleUnarchive(b) : setArchiving(b)),
               },
             );
           }
@@ -264,9 +264,7 @@ export function BudgetsView({
                     {isActive && <Badge variant="green">Activo</Badge>}
                     {isArchived && <Badge variant="gray">Archivado</Badge>}
                   </div>
-                  <p className="truncate text-sm text-ink-soft">
-                    {b.descripcion}
-                  </p>
+                  <p className="truncate text-sm text-ink-soft">{b.descripcion}</p>
                 </div>
                 <Menu label={`Opciones de ${b.nombre}`} items={items} />
               </div>
@@ -364,9 +362,8 @@ export function BudgetsView({
         danger={false}
         description={
           <>
-            <strong>{archiving?.nombre}</strong> dejará de aparecer como
-            presupuesto disponible, pero sus datos se conservan y podrás
-            desarchivarlo cuando quieras.
+            <strong>{archiving?.nombre}</strong> dejará de aparecer como presupuesto
+            disponible, pero sus datos se conservan y podrás desarchivarlo cuando quieras.
           </>
         }
       />
@@ -379,9 +376,8 @@ export function BudgetsView({
         confirmLabel="Salir"
         description={
           <>
-            Perderás el acceso a <strong>{leaving?.nombre}</strong> y a todos
-            sus movimientos. Alguien con rol de administrador tendría que
-            añadirte de nuevo.
+            Perderás el acceso a <strong>{leaving?.nombre}</strong> y a todos sus
+            movimientos. Alguien con rol de administrador tendría que añadirte de nuevo.
           </>
         }
       />

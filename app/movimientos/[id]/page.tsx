@@ -21,9 +21,7 @@ export default async function MovementDetailPage({
     getCategoryById(movement.categoriaId),
     getBudgetById(movement.budgetId),
     getProfileById(movement.userId),
-    movement.recurrentId
-      ? getRecurrentById(movement.recurrentId)
-      : Promise.resolve(null),
+    movement.recurrentId ? getRecurrentById(movement.recurrentId) : Promise.resolve(null),
   ]);
 
   return (

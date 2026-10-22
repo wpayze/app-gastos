@@ -83,9 +83,7 @@ export function AppProviders({
   children: ReactNode;
 }) {
   const router = useRouter();
-  const [activeBudgetId, setActiveBudgetIdState] = useState(
-    initialActiveBudgetId,
-  );
+  const [activeBudgetId, setActiveBudgetIdState] = useState(initialActiveBudgetId);
   const [switching, startTransition] = useTransition();
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -116,8 +114,7 @@ export function AppProviders({
   const budgetValue = useMemo<BudgetContextValue>(
     () => ({
       activeBudgetId,
-      activeBudget:
-        budgets.find((b) => b.id === activeBudgetId) ?? budgets[0],
+      activeBudget: budgets.find((b) => b.id === activeBudgetId) ?? budgets[0],
       budgets,
       setActiveBudgetId,
       switching,
@@ -134,9 +131,7 @@ export function AppProviders({
 
   return (
     <BudgetContext.Provider value={budgetValue}>
-      <ToastContext.Provider value={toastValue}>
-        {children}
-      </ToastContext.Provider>
+      <ToastContext.Provider value={toastValue}>{children}</ToastContext.Provider>
     </BudgetContext.Provider>
   );
 }

@@ -23,9 +23,7 @@ export function BudgetSwitcher({ compact = false }: { compact?: boolean }) {
           compact ? "px-3 py-1.5" : "w-full rounded-xl px-3.5 py-3",
         )}
       >
-        <span className={compact ? "text-base" : "text-xl"}>
-          {activeBudget.emoji}
-        </span>
+        <span className={compact ? "text-base" : "text-xl"}>{activeBudget.emoji}</span>
         <span className="min-w-0 flex-1">
           <span
             className={cx(
@@ -36,9 +34,7 @@ export function BudgetSwitcher({ compact = false }: { compact?: boolean }) {
             {activeBudget.nombre}
           </span>
           {!compact && (
-            <span className="block text-xs text-ink-faint">
-              Presupuesto activo
-            </span>
+            <span className="block text-xs text-ink-faint">Presupuesto activo</span>
           )}
         </span>
         <Icon name="chevronDown" size={16} className="shrink-0 text-ink-faint" />
@@ -70,9 +66,7 @@ export function BudgetSwitcher({ compact = false }: { compact?: boolean }) {
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                       <span className="truncate font-semibold">{b.nombre}</span>
-                      {rol && (
-                        <Badge variant="outline">{ROLE_LABEL[rol]}</Badge>
-                      )}
+                      {rol && <Badge variant="outline">{ROLE_LABEL[rol]}</Badge>}
                     </span>
                     <span className="block truncate text-xs text-ink-soft">
                       {b.miembros.length === 1

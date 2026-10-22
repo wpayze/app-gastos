@@ -23,14 +23,10 @@ export function Field({
 }) {
   return (
     <label className={cx("block", className)}>
-      <span className="mb-1.5 block text-[13px] font-medium text-ink-soft">
-        {label}
-      </span>
+      <span className="mb-1.5 block text-[13px] font-medium text-ink-soft">{label}</span>
       {children}
       {error ? (
-        <span className="mt-1 block text-xs font-medium text-expense">
-          {error}
-        </span>
+        <span className="mt-1 block text-xs font-medium text-expense">{error}</span>
       ) : hint ? (
         <span className="mt-1 block text-xs text-ink-faint">{hint}</span>
       ) : null}

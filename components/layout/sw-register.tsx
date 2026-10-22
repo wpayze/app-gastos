@@ -14,12 +14,10 @@ export function SWRegister() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") return;
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js", { scope: "/" })
-        .catch(() => {
-          // El registro puede fallar en navegadores antiguos;
-          // la aplicación funciona igualmente sin service worker.
-        });
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+        // El registro puede fallar en navegadores antiguos;
+        // la aplicación funciona igualmente sin service worker.
+      });
     }
   }, []);
   return null;

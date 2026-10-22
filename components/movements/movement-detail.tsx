@@ -4,28 +4,21 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteMovementAction } from "@/app/movimientos/actions";
-import { formatDateLong, formatForeignMoney, formatMoney, formatRate } from "@/lib/format";
+import {
+  formatDateLong,
+  formatForeignMoney,
+  formatMoney,
+  formatRate,
+} from "@/lib/format";
 import { PAYMENT_LABEL, FREQUENCY_LABEL, CURRENCY_LABEL } from "@/lib/labels";
 import { useToast } from "@/lib/store";
 import type { Budget, Category, Movement, Recurrent, User } from "@/lib/types";
-import {
-  Amount,
-  Avatar,
-  Badge,
-  Card,
-  cx,
-} from "@/components/ui/primitives";
+import { Amount, Avatar, Badge, Card, cx } from "@/components/ui/primitives";
 import { ConfirmDialog } from "@/components/ui/overlays";
 import { ErrorState } from "@/components/ui/states";
 import { Icon } from "@/components/ui/icon";
 
-function DetailRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2.5">
       <dt className="text-sm text-ink-soft">{label}</dt>
@@ -217,8 +210,8 @@ export function MovementDetail({
           <>
             Se eliminará <strong>{movement.concepto}</strong> (
             {formatMoney(movement.cantidad)})
-            {budget ? ` del presupuesto ${budget.nombre}` : ""}. Esta acción
-            no se puede deshacer.
+            {budget ? ` del presupuesto ${budget.nombre}` : ""}. Esta acción no se puede
+            deshacer.
           </>
         }
       />

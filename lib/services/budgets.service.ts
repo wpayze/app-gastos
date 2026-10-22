@@ -23,12 +23,7 @@ async function attachMembers(
   if (error) throw error;
 
   return budgetRows.map((row) =>
-    mapBudget(
-      row,
-      memberRows
-        .filter((m) => m.budget_id === row.id)
-        .map(mapBudgetMember),
-    ),
+    mapBudget(row, memberRows.filter((m) => m.budget_id === row.id).map(mapBudgetMember)),
   );
 }
 
@@ -76,15 +71,12 @@ export interface CreateBudgetInput {
 export async function createBudget(input: CreateBudgetInput): Promise<Budget> {
   const supabase = await createClient();
 
-  const { data: budgetRow, error } = await supabase.rpc(
-    "create_budget_with_owner",
-    {
-      p_nombre: input.nombre,
-      p_descripcion: input.descripcion ?? "",
-      p_emoji: input.emoji ?? "💰",
-      p_limite_mensual: input.limiteMensual ?? null,
-    },
-  );
+  const { data: budgetRow, error } = await supabase.rpc("create_budget_with_owner", {
+    p_nombre: input.nombre,
+    p_descripcion: input.descripcion ?? "",
+    p_emoji: input.emoji ?? "💰",
+    p_limite_mensual: input.limiteMensual ?? null,
+  });
   if (error) throw error;
 
   const [budget] = await attachMembers(supabase, [budgetRow]);
@@ -122,15 +114,9 @@ export async function updateBudget(
 }
 
 /** No hay "eliminar" presupuesto de verdad: solo archivar/desarchivar. */
-export async function setBudgetEstado(
-  id: string,
-  estado: BudgetStatus,
-): Promise<void> {
+export async function setBudgetEstado(id: string, estado: BudgetStatus): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("budgets")
-    .update({ estado })
-    .eq("id", id);
+  const { error } = await supabase.from("budgets").update({ estado }).eq("id", id);
   if (error) throw error;
 }
 
@@ -177,10 +163,7 @@ export async function setMemberEstado(
 }
 
 /** Quita a alguien del presupuesto (o le sirve a uno mismo para salir). */
-export async function removeMember(
-  budgetId: string,
-  userId: string,
-): Promise<void> {
+export async function removeMember(budgetId: string, userId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("budget_members")

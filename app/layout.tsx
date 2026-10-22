@@ -23,8 +23,7 @@ export const metadata: Metadata = {
     default: "Centavo",
     template: "%s · Centavo",
   },
-  description:
-    "Gestión de gastos e ingresos personales en presupuestos compartidos.",
+  description: "Gestión de gastos e ingresos personales en presupuestos compartidos.",
   applicationName: "Centavo",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -91,11 +90,7 @@ export default async function RootLayout({
   return (
     <html lang="es" className={htmlClassName}>
       <body className="min-h-full flex flex-col">
-        <AppProviders
-          user={user}
-          budgets={budgets}
-          activeBudgetId={activeBudgetId}
-        >
+        <AppProviders user={user} budgets={budgets} activeBudgetId={activeBudgetId}>
           <AppShell>{children}</AppShell>
         </AppProviders>
       </body>

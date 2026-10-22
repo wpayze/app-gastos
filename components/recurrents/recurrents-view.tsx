@@ -6,13 +6,7 @@ import { formatDate, relativeDay } from "@/lib/format";
 import { addInterval, isoToMonthKey } from "@/lib/calendar";
 import { isRecurrentPendingForMonth } from "@/lib/recurrents";
 import { FREQUENCY_LABEL, RECURRENT_STATUS_LABEL } from "@/lib/labels";
-import type {
-  Category,
-  Frequency,
-  Movement,
-  MovementType,
-  Recurrent,
-} from "@/lib/types";
+import type { Category, Frequency, Movement, MovementType, Recurrent } from "@/lib/types";
 import {
   addRecurrentMovementAction,
   createRecurrentAction,
@@ -21,13 +15,7 @@ import {
   resumeRecurrentAction,
   updateRecurrentAction,
 } from "@/app/recurrentes/actions";
-import {
-  Amount,
-  Badge,
-  Card,
-  cx,
-  type BadgeVariant,
-} from "@/components/ui/primitives";
+import { Amount, Badge, Card, cx, type BadgeVariant } from "@/components/ui/primitives";
 import { FilterChips, Field, Input, Select } from "@/components/ui/forms";
 import { ConfirmDialog, Menu, Sheet } from "@/components/ui/overlays";
 import { EmptyState } from "@/components/ui/states";
@@ -77,9 +65,7 @@ function RecurrentForm({
   onSubmit: (values: RecurrentFormValues) => void;
 }) {
   const [nombre, setNombre] = useState(initial?.nombre ?? "");
-  const [cantidad, setCantidad] = useState(
-    initial ? String(initial.cantidad) : "",
-  );
+  const [cantidad, setCantidad] = useState(initial ? String(initial.cantidad) : "");
   const [tipo, setTipo] = useState<MovementType>(initial?.tipo ?? "gasto");
   const [categoria, setCategoria] = useState(initial?.categoriaId ?? "");
   const [frecuencia, setFrecuencia] = useState<Frequency>(
@@ -126,10 +112,7 @@ function RecurrentForm({
       )}
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tipo">
-          <Select
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value as MovementType)}
-          >
+          <Select value={tipo} onChange={(e) => setTipo(e.target.value as MovementType)}>
             <option value="gasto">Gasto</option>
             <option value="ingreso">Ingreso</option>
           </Select>
@@ -152,10 +135,7 @@ function RecurrentForm({
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Categoría">
-          <Select
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
-          >
+          <Select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
             <option value="">Elegir…</option>
             {categories
               .filter((c) => c.tipo === tipo)
@@ -186,22 +166,18 @@ function RecurrentForm({
           </Select>
         </Field>
         <Field label="Fecha de inicio">
-          <Input
-            type="date"
-            value={inicio}
-            onChange={(e) => setInicio(e.target.value)}
-          />
+          <Input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
         </Field>
         <Field label="Finaliza (opcional)">
-          <Input
-            type="date"
-            value={fin}
-            onChange={(e) => setFin(e.target.value)}
-          />
+          <Input type="date" value={fin} onChange={(e) => setFin(e.target.value)} />
         </Field>
       </div>
       <div className="flex justify-end">
-        <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn-primary disabled:opacity-60"
+        >
           <Icon name="check" size={16} />
           {pending ? "Guardando…" : initial ? "Guardar cambios" : "Crear recurrente"}
         </button>
@@ -256,9 +232,7 @@ export function RecurrentsView({
       try {
         if (editing) {
           const updated = await updateRecurrentAction(editing.id, values);
-          setItems((list) =>
-            list.map((r) => (r.id === updated.id ? updated : r)),
-          );
+          setItems((list) => list.map((r) => (r.id === updated.id ? updated : r)));
           toast(`Cambios guardados en «${updated.nombre}»`);
         } else {
           const created = await createRecurrentAction(budgetId, values);
@@ -287,9 +261,7 @@ export function RecurrentsView({
   };
 
   const handleResume = (r: Recurrent) => {
-    setItems((list) =>
-      list.map((x) => (x.id === r.id ? { ...x, estado: "activo" } : x)),
-    );
+    setItems((list) => list.map((x) => (x.id === r.id ? { ...x, estado: "activo" } : x)));
     toast(`«${r.nombre}» reanudado`);
     startTransition(async () => {
       try {
@@ -336,9 +308,7 @@ export function RecurrentsView({
                   ...x,
                   proximaFecha: nextProximaFecha,
                   estado:
-                    x.fechaFin && nextProximaFecha > x.fechaFin
-                      ? "finalizado"
-                      : x.estado,
+                    x.fechaFin && nextProximaFecha > x.fechaFin ? "finalizado" : x.estado,
                 }
               : x,
           ),
@@ -369,9 +339,9 @@ export function RecurrentsView({
       <Card className="flex items-start gap-3 border-pine/25 bg-pine-tint px-4 py-3">
         <Icon name="repeat" size={17} className="mt-0.5 shrink-0 text-pine" />
         <p className="text-sm text-pine-deep">
-          Los recurrentes no se añaden solos: cuando llegue el cobro o el
-          ingreso, usa <strong>Agregar a este mes</strong> para crear el
-          movimiento en la fecha exacta en que ocurrió.
+          Los recurrentes no se añaden solos: cuando llegue el cobro o el ingreso, usa{" "}
+          <strong>Agregar a este mes</strong> para crear el movimiento en la fecha exacta
+          en que ocurrió.
         </p>
       </Card>
 
@@ -433,9 +403,7 @@ export function RecurrentsView({
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span className="truncate text-sm font-semibold">
-                        {r.nombre}
-                      </span>
+                      <span className="truncate text-sm font-semibold">{r.nombre}</span>
                       <Badge variant={STATUS_BADGE[r.estado]}>
                         {RECURRENT_STATUS_LABEL[r.estado]}
                       </Badge>
@@ -560,7 +528,11 @@ export function RecurrentsView({
             />
           </Field>
           <div className="flex justify-end">
-            <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={pending}
+              className="btn-primary disabled:opacity-60"
+            >
               <Icon name="check" size={16} />
               {pending ? "Añadiendo…" : "Añadir movimiento"}
             </button>
@@ -578,9 +550,8 @@ export function RecurrentsView({
         title="Eliminar recurrente"
         description={
           <>
-            Se eliminará <strong>{deleting?.nombre}</strong> de{" "}
-            {activeBudget.nombre}. Los movimientos ya generados no se
-            borrarán.
+            Se eliminará <strong>{deleting?.nombre}</strong> de {activeBudget.nombre}. Los
+            movimientos ya generados no se borrarán.
           </>
         }
       />

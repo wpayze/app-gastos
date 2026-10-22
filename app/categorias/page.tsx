@@ -1,9 +1,6 @@
 import { getActiveBudgetContext } from "@/lib/session/active-budget";
 import { listCategories } from "@/lib/services/categories.service";
-import {
-  categorySpending,
-  movementsByMonth,
-} from "@/lib/services/movements.service";
+import { categorySpending, movementsByMonth } from "@/lib/services/movements.service";
 import { currentMonthKey, monthLabel } from "@/lib/calendar";
 import { CategoriesView } from "@/components/categories/categories-view";
 

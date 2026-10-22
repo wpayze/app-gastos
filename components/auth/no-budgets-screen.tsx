@@ -15,9 +15,8 @@ export function NoBudgetsScreen({ user }: { user: User }) {
         <div>
           <h1 className="text-lg font-bold">Crea tu primer presupuesto</h1>
           <p className="mt-1 text-sm text-ink-soft">
-            {user.nombre}, todavía no perteneces a ninguno. Puedes crear el
-            tuyo ahora, o pedirle a quien administra Centavo que te añada a
-            uno existente.
+            {user.nombre}, todavía no perteneces a ninguno. Puedes crear el tuyo ahora, o
+            pedirle a quien administra Centavo que te añada a uno existente.
           </p>
         </div>
 

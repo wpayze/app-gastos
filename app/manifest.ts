@@ -4,8 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Centavo — gastos e ingresos",
     short_name: "Centavo",
-    description:
-      "Gestión de gastos e ingresos personales en presupuestos compartidos.",
+    description: "Gestión de gastos e ingresos personales en presupuestos compartidos.",
     id: "/",
     start_url: "/",
     scope: "/",

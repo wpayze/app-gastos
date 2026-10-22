@@ -17,10 +17,7 @@ export async function getActiveBudgetContext(): Promise<{
   budgets: Budget[];
   activeBudgetId: string;
 }> {
-  const [cookieStore, budgets] = await Promise.all([
-    cookies(),
-    listBudgets(),
-  ]);
+  const [cookieStore, budgets] = await Promise.all([cookies(), listBudgets()]);
 
   if (budgets.length === 0) {
     return { budgets: [], activeBudgetId: "" };
@@ -28,9 +25,7 @@ export async function getActiveBudgetContext(): Promise<{
 
   const fromCookie = cookieStore.get(ACTIVE_BUDGET_COOKIE)?.value;
   const activeBudgetId =
-    fromCookie && budgets.some((b) => b.id === fromCookie)
-      ? fromCookie
-      : budgets[0].id;
+    fromCookie && budgets.some((b) => b.id === fromCookie) ? fromCookie : budgets[0].id;
 
   return { budgets, activeBudgetId };
 }

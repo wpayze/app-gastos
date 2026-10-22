@@ -268,8 +268,7 @@ export function DashboardView({
                   />
                   <ProgressBar pct={summary.progreso ?? 0} className="mt-2" />
                   <p className="mt-1 text-xs text-ink-faint">
-                    {formatPct(summary.progreso ?? 0)} del presupuesto mensual
-                    utilizado
+                    {formatPct(summary.progreso ?? 0)} del presupuesto mensual utilizado
                   </p>
                 </div>
               )}
@@ -285,8 +284,8 @@ export function DashboardView({
                   {pendingRecurrentsCount}{" "}
                   {pendingRecurrentsCount === 1 ? "recurrente" : "recurrentes"}
                 </strong>{" "}
-                {pendingRecurrentsCount === 1 ? "no se ha" : "no se han"}{" "}
-                añadido al presupuesto de este mes.
+                {pendingRecurrentsCount === 1 ? "no se ha" : "no se han"} añadido al
+                presupuesto de este mes.
               </p>
               <Link
                 href="/recurrentes"
@@ -425,7 +424,9 @@ export function DashboardView({
                           <Amount value={c.gastado} className="text-sm font-semibold" />
                         </div>
                         <ProgressBar
-                          pct={c.pct !== undefined ? c.pct : (c.gastado / maxCategoria) * 100}
+                          pct={
+                            c.pct !== undefined ? c.pct : (c.gastado / maxCategoria) * 100
+                          }
                         />
                       </li>
                     ))}

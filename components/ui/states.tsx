@@ -28,9 +28,7 @@ export function EmptyState({
       <div>
         <h3 className="font-semibold">{title}</h3>
         {description && (
-          <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">
-            {description}
-          </p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{description}</p>
         )}
       </div>
       {action}
@@ -55,9 +53,7 @@ export function ErrorState({
       </span>
       <div>
         <h3 className="font-semibold">{title}</h3>
-        <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">
-          {description}
-        </p>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{description}</p>
       </div>
       {action}
     </Card>

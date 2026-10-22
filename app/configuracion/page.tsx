@@ -30,8 +30,7 @@ function useStandalone() {
 function PwaSection() {
   const { toast } = useToast();
   const offline = useOffline();
-  const [installEvent, setInstallEvent] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const standalone = useStandalone();
   const isIOS = useSyncExternalStore(
     noopSubscribe,
@@ -95,10 +94,7 @@ function PwaSection() {
           )}
         >
           <span
-            className={cx(
-              "h-2 w-2 rounded-full",
-              offline ? "bg-amber" : "bg-income",
-            )}
+            className={cx("h-2 w-2 rounded-full", offline ? "bg-amber" : "bg-income")}
           />
           {offline ? "Sin conexión" : "Conectado"}
         </span>
@@ -151,10 +147,7 @@ export default function SettingsPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nombre">
-              <Input
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-              />
+              <Input value={nombre} onChange={(e) => setNombre(e.target.value)} />
             </Field>
             <Field label="Correo">
               <Input value={user.email} disabled className="opacity-60" />

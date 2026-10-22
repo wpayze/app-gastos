@@ -24,11 +24,7 @@ const OPTIONS = [
 ];
 
 /** Acción global para crear un movimiento (botón + hoja de opciones) */
-export function NewMovementButton({
-  variant,
-}: {
-  variant: "sidebar" | "fab";
-}) {
+export function NewMovementButton({ variant }: { variant: "sidebar" | "fab" }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
@@ -65,9 +61,7 @@ export function NewMovementButton({
               </span>
               <span>
                 <span className="block font-semibold">{o.label}</span>
-                <span className="block text-xs text-ink-soft">
-                  {o.description}
-                </span>
+                <span className="block text-xs text-ink-soft">{o.description}</span>
               </span>
             </button>
           ))}

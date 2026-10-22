@@ -10,10 +10,7 @@ export { cx };
 
 // ── Card ────────────────────────────────────────────────────
 
-export function Card({
-  className,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cx(
@@ -60,11 +57,7 @@ export function Amount({
   className?: string;
 }) {
   const color =
-    neutral || !tipo
-      ? undefined
-      : tipo === "ingreso"
-        ? "text-income"
-        : "text-expense";
+    neutral || !tipo ? undefined : tipo === "ingreso" ? "text-income" : "text-expense";
   return (
     <span className={cx("amount", color, className)}>
       {signed && tipo ? formatSigned(value, tipo) : formatMoney(value)}
@@ -147,8 +140,7 @@ export function ProgressBar({
   pct: number;
   className?: string;
 }) {
-  const color =
-    pct >= 100 ? "bg-expense" : pct >= 85 ? "bg-amber" : "bg-pine";
+  const color = pct >= 100 ? "bg-expense" : pct >= 85 ? "bg-amber" : "bg-pine";
   return (
     <div
       className={cx("h-1.5 w-full overflow-hidden rounded-full bg-line-soft", className)}

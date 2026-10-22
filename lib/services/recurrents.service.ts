@@ -32,10 +32,7 @@ export async function recurrentsByBudget(budgetId: string): Promise<Recurrent[]>
   return data.map(mapRecurrent);
 }
 
-export async function upcomingRecurrents(
-  budgetId: string,
-  n = 5,
-): Promise<Recurrent[]> {
+export async function upcomingRecurrents(budgetId: string, n = 5): Promise<Recurrent[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("recurrents")
@@ -63,9 +60,7 @@ export interface RecurrentInput {
   metodoPago?: PaymentMethod;
 }
 
-export async function createRecurrent(
-  input: RecurrentInput,
-): Promise<Recurrent> {
+export async function createRecurrent(input: RecurrentInput): Promise<Recurrent> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("recurrents")

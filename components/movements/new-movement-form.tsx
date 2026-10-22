@@ -67,7 +67,9 @@ export function NewMovementForm({
   const [tipo, setTipo] = useState<MovementType>(initialTipo);
   const [cantidad, setCantidad] = useState(base ? String(base.cantidad) : "");
   const [moneda, setMoneda] = useState<"EUR" | ForeignCurrency>("EUR");
-  const [preview, setPreview] = useState<{ tasa: number; convertido: number } | null>(null);
+  const [preview, setPreview] = useState<{ tasa: number; convertido: number } | null>(
+    null,
+  );
   const [previewLoading, setPreviewLoading] = useState(false);
   const [concepto, setConcepto] = useState(base?.concepto ?? "");
   const [categoria, setCategoria] = useState(base?.categoriaId ?? "");
@@ -89,9 +91,7 @@ export function NewMovementForm({
     [categoryList, tipo],
   );
 
-  const miembrosActivos = activeBudget.miembros.filter(
-    (m) => m.estado === "activo",
-  );
+  const miembrosActivos = activeBudget.miembros.filter((m) => m.estado === "activo");
 
   // Conversión a euros: se recalcula sola (con caché de 24h detrás) cada
   // vez que cambia la moneda o el monto, para mostrar el preview antes de
@@ -159,8 +159,7 @@ export function NewMovementForm({
       userId: responsable,
       metodoPago: metodo,
       nota: nota.trim() || undefined,
-      monedaOriginal:
-        !editing && moneda !== "EUR" ? moneda : undefined,
+      monedaOriginal: !editing && moneda !== "EUR" ? moneda : undefined,
       cantidadOriginal:
         !editing && moneda !== "EUR" ? Number(cantidad.replace(",", ".")) : undefined,
     };
@@ -232,10 +231,7 @@ export function NewMovementForm({
               <Icon name="plus" size={15} />
               Crear otro
             </button>
-            <button
-              onClick={() => router.push("/movimientos")}
-              className="btn-primary"
-            >
+            <button onClick={() => router.push("/movimientos")} className="btn-primary">
               Ver movimientos
             </button>
           </div>
@@ -466,7 +462,11 @@ export function NewMovementForm({
           <Link href="/movimientos" className="btn-secondary">
             Cancelar
           </Link>
-          <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={pending}
+            className="btn-primary disabled:opacity-60"
+          >
             <Icon name="check" size={16} />
             {pending
               ? "Guardando…"

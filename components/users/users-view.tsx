@@ -12,12 +12,7 @@ import {
   updateMemberRoleAction,
   type AddMemberState,
 } from "@/app/usuarios/actions";
-import {
-  Avatar,
-  Badge,
-  Card,
-  type BadgeVariant,
-} from "@/components/ui/primitives";
+import { Avatar, Badge, Card, type BadgeVariant } from "@/components/ui/primitives";
 import { ConfirmDialog, Menu, Sheet, type MenuItem } from "@/components/ui/overlays";
 import { Field, Input, Select } from "@/components/ui/forms";
 import { EmptyState } from "@/components/ui/states";
@@ -52,15 +47,8 @@ function AddMemberForm({
   existingMemberIds: string[];
   onSuccess: () => void;
 }) {
-  const boundAction = addMemberByEmailAction.bind(
-    null,
-    budgetId,
-    existingMemberIds,
-  );
-  const [state, action, pending] = useActionState(
-    boundAction,
-    addMemberInitialState,
-  );
+  const boundAction = addMemberByEmailAction.bind(null, budgetId, existingMemberIds);
+  const [state, action, pending] = useActionState(boundAction, addMemberInitialState);
 
   useEffect(() => {
     if (state.success) onSuccess();
@@ -89,8 +77,7 @@ function AddMemberForm({
       </Field>
       <ul className="space-y-1 rounded-lg bg-paper px-3 py-2 text-xs text-ink-soft">
         <li>
-          <strong>Administrador</strong>: gestiona miembros, límites y todo lo
-          demás.
+          <strong>Administrador</strong>: gestiona miembros, límites y todo lo demás.
         </li>
         <li>
           <strong>Editor</strong>: crea y edita movimientos.
@@ -103,7 +90,11 @@ function AddMemberForm({
         Solo se puede añadir a alguien que ya tenga cuenta en Centavo.
       </p>
       <div className="flex justify-end">
-        <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn-primary disabled:opacity-60"
+        >
           <Icon name="check" size={16} />
           {pending ? "Buscando…" : "Añadir miembro"}
         </button>
@@ -137,9 +128,7 @@ export function UsersView({
   const soloMember = members.length === 1;
 
   const handleRoleChange = (member: BudgetMember, rol: BudgetRole) => {
-    setMembers((l) =>
-      l.map((m) => (m.userId === member.userId ? { ...m, rol } : m)),
-    );
+    setMembers((l) => l.map((m) => (m.userId === member.userId ? { ...m, rol } : m)));
     const u = findProfile(profiles, member.userId);
     toast(`${u.nombre} ahora es ${ROLE_LABEL[rol].toLowerCase()}`);
     setRoleFor(undefined);
@@ -154,9 +143,7 @@ export function UsersView({
 
   const handleRestore = (member: BudgetMember) => {
     setMembers((l) =>
-      l.map((m) =>
-        m.userId === member.userId ? { ...m, estado: "activo" } : m,
-      ),
+      l.map((m) => (m.userId === member.userId ? { ...m, estado: "activo" } : m)),
     );
     const u = findProfile(profiles, member.userId);
     toast(`Acceso de ${u.nombre} restaurado`);
@@ -226,10 +213,7 @@ export function UsersView({
             }
 
             return (
-              <li
-                key={member.userId}
-                className="flex items-center gap-3 px-4 py-3.5"
-              >
+              <li key={member.userId} className="flex items-center gap-3 px-4 py-3.5">
                 <Avatar iniciales={u.iniciales} color={u.color} size={40} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -248,8 +232,8 @@ export function UsersView({
                   </div>
                   <p className="truncate text-xs text-ink-faint">{u.email}</p>
                   <p className="text-xs text-ink-faint">
-                    Desde {formatDate(member.fechaIncorporacion)} · Última
-                    actividad: {relativeDay(member.ultimaActividad, today)} ·{" "}
+                    Desde {formatDate(member.fechaIncorporacion)} · Última actividad:{" "}
+                    {relativeDay(member.ultimaActividad, today)} ·{" "}
                     {counts[member.userId] ?? 0} movimientos
                   </p>
                 </div>

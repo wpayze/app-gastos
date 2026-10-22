@@ -39,10 +39,7 @@ export async function setCategoryLimitAction(
   revalidatePath("/categorias");
 }
 
-export async function removeCategoryLimitAction(
-  budgetId: string,
-  categoryId: string,
-) {
+export async function removeCategoryLimitAction(budgetId: string, categoryId: string) {
   await removeCategoryLimit(budgetId, categoryId);
   revalidatePath("/categorias");
 }

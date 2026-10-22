@@ -12,22 +12,37 @@ import {
   setCategoryLimitAction,
   updateCategoryAction,
 } from "@/app/categorias/actions";
-import {
-  Amount,
-  Badge,
-  Card,
-  ProgressBar,
-  cx,
-} from "@/components/ui/primitives";
+import { Amount, Badge, Card, ProgressBar, cx } from "@/components/ui/primitives";
 import { ConfirmDialog, Menu, Sheet } from "@/components/ui/overlays";
 import { Field, Input, Select, FilterChips } from "@/components/ui/forms";
 import { EmptyState } from "@/components/ui/states";
 import { Icon } from "@/components/ui/icon";
 
 const EMOJI_CHOICES = [
-  "🏠", "🛒", "🚌", "🩺", "🎬", "📺", "📚", "✈️",
-  "💶", "🧑‍💻", "📈", "🧾", "🪙", "🎁", "🐶", "👶",
-  "🍔", "🍕", "☕", "👕", "👟", "🎮", "🎉", "🐱",
+  "🏠",
+  "🛒",
+  "🚌",
+  "🩺",
+  "🎬",
+  "📺",
+  "📚",
+  "✈️",
+  "💶",
+  "🧑‍💻",
+  "📈",
+  "🧾",
+  "🪙",
+  "🎁",
+  "🐶",
+  "👶",
+  "🍔",
+  "🍕",
+  "☕",
+  "👕",
+  "👟",
+  "🎮",
+  "🎉",
+  "🐱",
 ];
 
 interface CategoryFormValues {
@@ -77,10 +92,7 @@ function CategoryForm({
           />
         </Field>
         <Field label="Tipo">
-          <Select
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value as MovementType)}
-          >
+          <Select value={tipo} onChange={(e) => setTipo(e.target.value as MovementType)}>
             <option value="gasto">Gasto</option>
             <option value="ingreso">Ingreso</option>
           </Select>
@@ -107,7 +119,11 @@ function CategoryForm({
         </div>
       </Field>
       <div className="flex justify-end">
-        <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn-primary disabled:opacity-60"
+        >
           <Icon name="check" size={16} />
           {pending ? "Guardando…" : initial ? "Guardar cambios" : "Crear categoría"}
         </button>
@@ -131,7 +147,12 @@ function statsFor(
     };
   }
   const s = ingresoStats[cat.id];
-  return { total: s?.total ?? 0, count: s?.count ?? 0, limite: undefined, pct: undefined };
+  return {
+    total: s?.total ?? 0,
+    count: s?.count ?? 0,
+    limite: undefined,
+    pct: undefined,
+  };
 }
 
 export function CategoriesView({
@@ -177,9 +198,7 @@ export function CategoriesView({
       try {
         if (editing) {
           const updated = await updateCategoryAction(editing.id, values);
-          setCategories((list) =>
-            list.map((c) => (c.id === updated.id ? updated : c)),
-          );
+          setCategories((list) => list.map((c) => (c.id === updated.id ? updated : c)));
           toast(`Cambios guardados en «${updated.nombre}»`);
         } else {
           const created = await createCategoryAction(values);
@@ -295,9 +314,7 @@ export function CategoriesView({
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h2 className="truncate text-sm font-semibold">
-                        {cat.nombre}
-                      </h2>
+                      <h2 className="truncate text-sm font-semibold">{cat.nombre}</h2>
                       <Badge variant={cat.tipo === "gasto" ? "red" : "green"}>
                         {cat.tipo === "gasto" ? "Gasto" : "Ingreso"}
                       </Badge>
@@ -439,8 +456,8 @@ export function CategoriesView({
         title="Eliminar categoría"
         description={
           <>
-            Los movimientos de <strong>{deleting?.nombre}</strong> pasarán a
-            «Sin categoría». Esta acción afecta a todos los presupuestos.
+            Los movimientos de <strong>{deleting?.nombre}</strong> pasarán a «Sin
+            categoría». Esta acción afecta a todos los presupuestos.
           </>
         }
       />

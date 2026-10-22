@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "./icon";
 import { cx } from "./primitives";
@@ -226,11 +220,7 @@ export function ToastViewport() {
         >
           <Icon
             name={
-              t.variant === "danger"
-                ? "trash"
-                : t.variant === "info"
-                  ? "info"
-                  : "check"
+              t.variant === "danger" ? "trash" : t.variant === "info" ? "info" : "check"
             }
             size={16}
           />

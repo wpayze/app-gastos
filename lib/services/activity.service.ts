@@ -32,10 +32,7 @@ function movementToActivity(m: MovementActivityRow, budgetId: string): ActivityI
 }
 
 /** Combina la actividad guardada (miembros, límites, recurrentes) con la de movimientos, para el widget del dashboard. */
-export async function recentActivity(
-  budgetId: string,
-  n = 8,
-): Promise<ActivityItem[]> {
+export async function recentActivity(budgetId: string, n = 8): Promise<ActivityItem[]> {
   const supabase = await createClient();
 
   const [movsResult, activityResult] = await Promise.all([

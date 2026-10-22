@@ -38,9 +38,7 @@ function slugify(input: string): string {
 }
 
 /** El id (slug) se deriva del nombre, no lo pide el formulario. */
-export async function createCategory(
-  input: CreateCategoryInput,
-): Promise<Category> {
+export async function createCategory(input: CreateCategoryInput): Promise<Category> {
   const supabase = await createClient();
   const baseId = slugify(input.nombre) || "categoria";
   const row = { id: baseId, nombre: input.nombre, tipo: input.tipo, emoji: input.emoji };
@@ -110,9 +108,11 @@ export async function setCategoryLimit(
   limiteMensual: number,
 ): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("category_limits")
-    .upsert({ budget_id: budgetId, category_id: categoryId, limite_mensual: limiteMensual });
+  const { error } = await supabase.from("category_limits").upsert({
+    budget_id: budgetId,
+    category_id: categoryId,
+    limite_mensual: limiteMensual,
+  });
   if (error) throw error;
 }
 

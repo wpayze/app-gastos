@@ -23,10 +23,7 @@ export async function createBudgetAction(input: CreateBudgetInput) {
   return budget;
 }
 
-export async function updateBudgetAction(
-  id: string,
-  input: UpdateBudgetInput,
-) {
+export async function updateBudgetAction(id: string, input: UpdateBudgetInput) {
   const budget = await updateBudget(id, input);
   revalidateAll();
   return budget;
