@@ -1,8 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useSyncExternalStore, useTransition } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useActiveBudget } from "@/lib/store";
 import {
   formatDateShort,
@@ -34,7 +34,7 @@ import {
   cx,
 } from "@/components/ui/primitives";
 import { MonthPicker } from "@/components/ui/month-picker";
-import { EmptyState } from "@/components/ui/states";
+import { EmptyState, PageSpinner } from "@/components/ui/states";
 import { Icon } from "@/components/ui/icon";
 
 function TrendBadge({
@@ -118,6 +118,25 @@ function dayLabel(fecha: string, today: string) {
   return fecha === today ? `${base} (Hoy)` : base;
 }
 
+const MONTH_STORAGE_KEY = "dashboard-month";
+
+/** Mes guardado, o null si no hay (o localStorage no está disponible). */
+function readSavedMonth(): string | null {
+  try {
+    return localStorage.getItem(MONTH_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeSavedMonth(month: string) {
+  try {
+    localStorage.setItem(MONTH_STORAGE_KEY, month);
+  } catch {
+    // localStorage no disponible: se ignora.
+  }
+}
+
 export function DashboardView({
   months,
   month,
@@ -152,7 +171,35 @@ export function DashboardView({
   const { activeBudget } = useActiveBudget();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
+
+  // El mes elegido se recuerda en localStorage: si se entra sin ?mes=, se
+  // restaura el último y se pone en la URL. Hasta saber si hay que redirigir
+  // se muestra un spinner, para no pintar un instante el mes actual.
+  const urlMonth = searchParams.get("mes");
+  const savedMonth = useSyncExternalStore(
+    () => () => {},
+    readSavedMonth,
+    () => undefined, // servidor: aún no se sabe
+  );
+  const restoreMonth =
+    !urlMonth &&
+    savedMonth &&
+    savedMonth !== month &&
+    months.some((m) => m.key === savedMonth)
+      ? savedMonth
+      : undefined;
+  const resolvingMonth =
+    !urlMonth && (savedMonth === undefined || restoreMonth !== undefined);
+
+  useEffect(() => {
+    if (urlMonth) writeSavedMonth(urlMonth);
+  }, [urlMonth]);
+
+  useEffect(() => {
+    if (restoreMonth) router.replace(`${pathname}?mes=${restoreMonth}`);
+  }, [restoreMonth, pathname, router]);
 
   const maxCategoria = porCategoria[0]?.gastado ?? 1;
 
@@ -161,6 +208,8 @@ export function DashboardView({
       router.push(`${pathname}?mes=${newMonth}`);
     });
   };
+
+  if (resolvingMonth) return <PageSpinner />;
 
   return (
     <div className="space-y-6">
@@ -318,8 +367,8 @@ export function DashboardView({
                     />
                     <p className="flex-1 text-sm">
                       <strong>{a.categoria.nombre}</strong>{" "}
-                      {over ? "ha superado su límite" : "está cerca de su límite"}:{" "}
-                      <Amount value={a.gastado} className="font-semibold" /> de{" "}
+                      {over ? "ha superado su límite" : "está cerca de su límite"}
+                      : <Amount value={a.gastado} className="font-semibold" /> de{" "}
                       {formatMoney(a.limite ?? 0)} ({formatPct(a.pct ?? 0)})
                     </p>
                     <Link
@@ -340,7 +389,7 @@ export function DashboardView({
               <SectionTitle
                 action={
                   <Link
-                    href="/movimientos?orden=mayor"
+                    href={`/movimientos?orden=mayor&tipo=gastos&mes=${month}`}
                     className="text-sm font-medium text-pine hover:underline"
                   >
                     Ver todos
@@ -435,84 +484,89 @@ export function DashboardView({
               </Card>
             </section>
 
-            {/* Gasto por día */}
-            <section>
-              <SectionTitle>Gasto de los últimos 5 días</SectionTitle>
-              <Card>
-                <ul className="divide-y divide-line-soft">
-                  {gastosPorDia.map((d) => (
-                    <li
-                      key={d.fecha}
-                      className="flex items-center justify-between gap-3 px-4 py-3"
-                    >
-                      <span className="text-sm font-medium">
-                        {dayLabel(d.fecha, today)}
-                      </span>
-                      {d.total > 0 ? (
-                        <Amount
-                          value={d.total}
-                          tipo="gasto"
-                          className="text-sm font-semibold"
-                        />
-                      ) : (
-                        <span className="text-sm text-ink-faint">Sin gastos</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </section>
-
-            {/* Actividad reciente */}
-            <section>
-              <SectionTitle
-                action={
-                  <Link
-                    href="/actividad"
-                    className="text-sm font-medium text-pine hover:underline"
-                  >
-                    Ver todo
-                  </Link>
-                }
-              >
-                Actividad reciente
-              </SectionTitle>
-              <Card>
-                {actividad.length === 0 ? (
-                  <p className="px-4 py-8 text-center text-sm text-ink-faint">
-                    Todavía no hay actividad.
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-line-soft">
-                    {actividad.map((a) => {
-                      const u = findProfile(profiles, a.userId);
-                      return (
-                        <li key={a.id} className="flex items-start gap-3 px-4 py-3">
-                          <Avatar iniciales={u.iniciales} color={u.color} size={28} />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm leading-snug">
-                              <strong>{u.nombre.split(" ")[0]}</strong> {a.texto}
-                            </p>
-                            <p className="text-xs text-ink-faint">
-                              {relativeDay(a.fecha, today)}
-                            </p>
-                          </div>
-                          {a.tipo !== "movimiento" && (
-                            <Badge variant="outline">
-                              {a.tipo === "miembro"
-                                ? "Miembros"
-                                : a.tipo === "limite"
-                                  ? "Límites"
-                                  : "Recurrentes"}
-                            </Badge>
+            {/* Solo tiene sentido en el mes actual */}
+            {month === today.slice(0, 7) && (
+              <>
+                {/* Gasto por día */}
+                <section>
+                  <SectionTitle>Gasto de los últimos 5 días</SectionTitle>
+                  <Card>
+                    <ul className="divide-y divide-line-soft">
+                      {gastosPorDia.map((d) => (
+                        <li
+                          key={d.fecha}
+                          className="flex items-center justify-between gap-3 px-4 py-3"
+                        >
+                          <span className="text-sm font-medium">
+                            {dayLabel(d.fecha, today)}
+                          </span>
+                          {d.total > 0 ? (
+                            <Amount
+                              value={d.total}
+                              tipo="gasto"
+                              className="text-sm font-semibold"
+                            />
+                          ) : (
+                            <span className="text-sm text-ink-faint">Sin gastos</span>
                           )}
                         </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </Card>
-            </section>
+                      ))}
+                    </ul>
+                  </Card>
+                </section>
+
+                {/* Actividad reciente */}
+                <section>
+                  <SectionTitle
+                    action={
+                      <Link
+                        href="/actividad"
+                        className="text-sm font-medium text-pine hover:underline"
+                      >
+                        Ver todo
+                      </Link>
+                    }
+                  >
+                    Actividad reciente
+                  </SectionTitle>
+                  <Card>
+                    {actividad.length === 0 ? (
+                      <p className="px-4 py-8 text-center text-sm text-ink-faint">
+                        Todavía no hay actividad.
+                      </p>
+                    ) : (
+                      <ul className="divide-y divide-line-soft">
+                        {actividad.map((a) => {
+                          const u = findProfile(profiles, a.userId);
+                          return (
+                            <li key={a.id} className="flex items-start gap-3 px-4 py-3">
+                              <Avatar iniciales={u.iniciales} color={u.color} size={28} />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm leading-snug">
+                                  <strong>{u.nombre.split(" ")[0]}</strong> {a.texto}
+                                </p>
+                                <p className="text-xs text-ink-faint">
+                                  {relativeDay(a.fecha, today)}
+                                </p>
+                              </div>
+                              {a.tipo !== "movimiento" && (
+                                <Badge variant="outline">
+                                  {a.tipo === "miembro"
+                                    ? "Miembros"
+                                    : a.tipo === "limite"
+                                      ? "Límites"
+                                      : "Recurrentes"}
+                                </Badge>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </Card>
+                </section>
+              </>
+            )}
           </div>
         </>
       )}

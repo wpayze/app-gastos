@@ -258,6 +258,76 @@ export type Database = {
           },
         ];
       };
+      pending_movements: {
+        Row: {
+          id: string;
+          budget_id: string;
+          external_id: string;
+          comercio: string;
+          cantidad: number;
+          moneda: string;
+          fecha: string;
+          asunto: string | null;
+          estado: string;
+          movement_id: string | null;
+          resolved_by: string | null;
+          resolved_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          budget_id: string;
+          external_id: string;
+          comercio: string;
+          cantidad: number;
+          moneda?: string;
+          fecha: string;
+          asunto?: string | null;
+          estado?: string;
+          movement_id?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          budget_id?: string;
+          external_id?: string;
+          comercio?: string;
+          cantidad?: number;
+          moneda?: string;
+          fecha?: string;
+          asunto?: string | null;
+          estado?: string;
+          movement_id?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pending_movements_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pending_movements_movement_id_fkey";
+            columns: ["movement_id"];
+            isOneToOne: false;
+            referencedRelation: "movements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pending_movements_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       movements: {
         Row: {
           id: string;

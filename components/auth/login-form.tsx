@@ -5,6 +5,7 @@ import { signIn, type SignInState } from "@/lib/auth/actions";
 import { Card } from "@/components/ui/primitives";
 import { Field, Input } from "@/components/ui/forms";
 import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/states";
 
 const initialState: SignInState = {};
 
@@ -56,11 +57,7 @@ export function LoginForm() {
           disabled={pending}
           className="btn-primary w-full disabled:opacity-60"
         >
-          {pending ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-          ) : (
-            <Icon name="check" size={16} />
-          )}
+          {pending ? <Spinner /> : <Icon name="check" size={16} />}
           {pending ? "Entrando…" : "Iniciar sesión"}
         </button>
       </form>

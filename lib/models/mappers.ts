@@ -14,6 +14,7 @@ import type {
   BudgetMember,
   Category,
   Movement,
+  PendingMovement,
   Recurrent,
   User,
 } from "@/lib/types";
@@ -24,6 +25,7 @@ type BudgetMemberRow = Database["public"]["Tables"]["budget_members"]["Row"];
 type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 type RecurrentRow = Database["public"]["Tables"]["recurrents"]["Row"];
 type MovementRow = Database["public"]["Tables"]["movements"]["Row"];
+type PendingMovementRow = Database["public"]["Tables"]["pending_movements"]["Row"];
 type ActivityRow = Database["public"]["Tables"]["activity"]["Row"];
 
 export function mapProfile(row: ProfileRow): User {
@@ -122,5 +124,19 @@ export function mapActivity(row: ActivityRow): ActivityItem {
     texto: row.texto,
     userId: row.user_id,
     tipo: row.tipo as ActivityItem["tipo"],
+  };
+}
+
+export function mapPendingMovement(row: PendingMovementRow): PendingMovement {
+  return {
+    id: row.id,
+    budgetId: row.budget_id,
+    comercio: row.comercio,
+    cantidad: row.cantidad,
+    moneda: row.moneda as PendingMovement["moneda"],
+    fecha: row.fecha,
+    asunto: row.asunto ?? undefined,
+    estado: row.estado as PendingMovement["estado"],
+    movementId: row.movement_id ?? undefined,
   };
 }

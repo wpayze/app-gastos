@@ -106,25 +106,33 @@ export function MovementsView({
   profiles,
   initialCategoria,
   initialSort,
+  initialType,
+  initialDesde,
+  initialHasta,
 }: {
   movements: Movement[];
   categories: Category[];
   profiles: User[];
   initialCategoria?: string;
   initialSort?: string;
+  initialType?: string;
+  initialDesde?: string;
+  initialHasta?: string;
 }) {
   const { activeBudget } = useActiveBudget();
 
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("todos");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>(
+    initialType === "gastos" || initialType === "ingresos" ? initialType : "todos",
+  );
   const [sort, setSort] = useState<SortKey>(
     isSortKey(initialSort) ? initialSort : "reciente",
   );
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(Boolean(initialDesde));
   const [categoria, setCategoria] = useState(initialCategoria ?? "todas");
   const [usuario, setUsuario] = useState("todos");
-  const [desde, setDesde] = useState("");
-  const [hasta, setHasta] = useState("");
+  const [desde, setDesde] = useState(initialDesde ?? "");
+  const [hasta, setHasta] = useState(initialHasta ?? "");
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
 
@@ -221,17 +229,11 @@ export function MovementsView({
       <div className="space-y-3">
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Icon
-              name="search"
-              size={17}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint"
-            />
             <Input
               type="search"
               placeholder="Buscar por concepto, categoría o nota"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
               aria-label="Buscar movimientos"
             />
           </div>

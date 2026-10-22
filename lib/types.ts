@@ -131,3 +131,21 @@ export interface CategorySpending {
   pct?: number;
   movimientos: number;
 }
+
+export type PendingStatus = "pendiente" | "agregado" | "omitido";
+
+/** Compra detectada en un correo del banco, a la espera de agregarse u omitirse. */
+export interface PendingMovement {
+  id: string;
+  budgetId: string;
+  comercio: string;
+  /** En `moneda`, tal cual viene en el correo. */
+  cantidad: number;
+  moneda: "EUR" | ForeignCurrency;
+  /** ISO yyyy-mm-dd */
+  fecha: string;
+  asunto?: string;
+  estado: PendingStatus;
+  /** Movimiento creado al agregarlo */
+  movementId?: string;
+}

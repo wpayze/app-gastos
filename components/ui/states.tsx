@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "./icon";
-import { Card } from "./primitives";
+import { Card, cx } from "./primitives";
 
 /** Estado vacío: siempre una invitación a actuar */
 export function EmptyState({
@@ -57,5 +57,29 @@ export function ErrorState({
       </div>
       {action}
     </Card>
+  );
+}
+
+/** Indicador de carga en línea; hereda el color del texto (`currentColor`). */
+export function Spinner({ size = 16, className }: { size?: number; className?: string }) {
+  return (
+    <span
+      role="status"
+      aria-label="Cargando"
+      style={{ width: size, height: size }}
+      className={cx(
+        "inline-block animate-spin rounded-full border-2 border-current/30 border-t-current",
+        className,
+      )}
+    />
+  );
+}
+
+/** Spinner centrado para ocupar el área de contenido mientras se decide qué mostrar. */
+export function PageSpinner() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center text-pine">
+      <Spinner size={32} />
+    </div>
   );
 }
